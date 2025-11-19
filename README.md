@@ -1,6 +1,6 @@
 # Automated Blocking Diagram Generation
-### Hilario Gonzalez, Josh Bardwick
-### Design Ergonomics
+ Hilario Gonzalez, Josh Bardwick
+ Design Ergonomics
 
 ## Overview
 
