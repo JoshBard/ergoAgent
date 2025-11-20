@@ -96,7 +96,7 @@ Format:
 | `"shape" `          | ```"Rectangular"   ```                          |
 | `"orientation" `    | ```{"narrow": ["reference","perpendicular OR parallel"]OR"none", "tlc": "    ", "h": "   "}``` |
 | `"numberOfEntries"` | ```[[min bound, entries num], [ , ], ...] ```  |
-| `"entryLocation" `  | ```[["rule", 1 OR 2 ()], [ , ], ...]  ```       |   !!!
+| `"entryLocation" `  | ```[["rule", 1 OR 2 (req,pref)], [ , ], ...]  ```       |  
 | `"clearancesADA" `  | ```[clearance width, count]OR"none"   ```       |
 | `"clearancesIdeal"` |``` [clearance amount, "details"]     ```        |   !!!
 | `"requirements"   ` | ```["details", "condition"]       ```           |   !!!
