@@ -48,8 +48,8 @@ Generates a final blocking diagram from the parameterized intermediate represent
 ## Repository Structure
 
 ergoAgent/
-- README.md
-- ruleset.json
+-README.md
+-ruleset.json
 
 ***
 ## JSON Schema Specifications:
