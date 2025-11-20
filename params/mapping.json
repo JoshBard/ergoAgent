@@ -61,5 +61,15 @@
         "BUSINESS OFFICE": "private.businessOffice",
         "TEAM LEADER": "private.teamLeader",
         "PATIENT CARE CENTER": "private.patientCareCenter"
+    },
+
+    "headers":{
+        "PUBLIC": "public",
+        "CLINICAL": "clinical",
+        "PRIVATE": "private",
+        "QTY": "qty",
+        "NO": "no",
+        "SIZE": "size",
+        "# of people": "people"
     }
 }
