@@ -1,0 +1,75 @@
+{
+    "meta": {
+        "CLIENT NAME": "clientName",
+        "DATE": "date",
+        "PROJECT TYPE": "projectType",
+        "PROJECT SIZE": "projectSize"
+    },
+
+    "public": {
+        "VESTIBULE": "public.vestibule",
+        "PATIENT LOUNGE": "public.patientLounge",
+        "RESTROOMS": "public.patientRestroom",
+        "CHILDRENS AREA": "public.childrensArea",
+        "REFRESHMENT AREA": "public.refreshmentArea",
+        "RETAIL AREA": "public.retailArea",
+        "CHECK-IN": "public.checkIn",
+        "CHECK-OUT": "public.checkOut",
+        "CONSULTATION ROOM": "public.consult",
+        "IMAGING": "public.imaging",
+        "PHOTO ROOM": "public.photoRoom",
+        "MULTI STALLS": "public.multiStalls",
+        "TOY/PRIZE AREA": "public.toyArea"
+    },
+
+    "clinical": {
+        "TREATMENT ROOM": "clinical.treatment",
+        "UNIVERSAL": "clinical.universal",
+        "HYGIENE": "clinical.hygiene",
+        "PRIVATE": "clinical.private",
+        "SURGICAL": "clinical.surgical",
+        "OPEN BAY": "clinical.openBay",
+        "MOBILE TECH": "clinical.mobileTechArea",
+        "TREATMENT COORDINATOR": "clinical.treatmentCoordinator",
+        "BRUSHING STATION": "clinical.brushingStation",
+        "RECOVERY ROOM": "clinical.recovery",
+        "RECORDS ROOM": "clinical.records"
+    },
+
+    "private": {
+        "TEAM LOUNGE": "private.staffLounge",
+        "CHANGING ROOM": "private.changingRoom",
+        "NURSING ROOM": "private.nursingRoom",
+        "LAUNDRY": "private.laundry",
+        "STAFF RESTROOM": "private.staffRestroom",
+        "STERILIZATION": "private.sterilization",
+        "LAB": "private.lab",
+        "SERVER CLOSET": "private.serverCloset",
+        "MECHANICAL": "private.mechanical",
+        "JANITOR CLOSET": "private.janitorCloset",
+        "MED GAS": "private.medGas",
+        "STORAGE CLOSET": "private.storageCloset",
+        "SHIP/REC": "private.shipRec",
+        "CONFERENCE ROOM": "private.conferenceRoom",
+        "DOCTORS OFFICE": "private.doctorOffice",
+        "PRIVATE RESTROOM A": "private.doctorPrivateRestroom",
+        "ASSOCIATES OFFICE": "private.associatesOffice",
+        "PRIVATE RESTROOM B": "private.associatesPrivateRestroom",
+        "DOCTOR NOOK": "private.doctorNook",
+        "OFFICE MANAGER": "private.officeManager",
+        "MARKETING": "private.marketing",
+        "BUSINESS OFFICE": "private.businessOffice",
+        "TEAM LEADER": "private.teamLeader",
+        "PATIENT CARE CENTER": "private.patientCareCenter"
+    },
+
+    "headers":{
+        "PUBLIC": "public",
+        "CLINICAL": "clinical",
+        "PRIVATE": "private",
+        "QTY": "qty",
+        "NO": "no",
+        "SIZE": "size",
+        "# of people": "people"
+    }
+}
