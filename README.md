@@ -47,9 +47,9 @@ Generates a final blocking diagram from the parameterized intermediate represent
 
 ## Repository Structure
 
-ergoAgent/
-\ -README.md
-\ -ruleset.json
+ergoAgent/  
+-README.md  
+-ruleset.json
 
 ***
 ## JSON Schema Specifications:
@@ -60,47 +60,49 @@ ergoAgent/
 ### Rule Set
 
 Format:
+```
 {
     "roomType": {
-        "attribute": "attribute details",
+        "attribute1": "attribute details",
+        "attribute2": "details",
         ...
     },
     ...
 }
-
+```
 | Room Types                    |
 | ------------------            |
-| sterilization                 |
-| lab                           |
-| consult                       |
-| patientRestroom               |
-| treatmentCoordinationStation  |
-| mobileTechArea                |
-| doctorsOnDeck                 |
-| doctorsOffice                 |
-| officeManagerOffice           |
-| businessOffice                |
-| altBusinessOffice             |
-| staffLounge                   |
-| patientLounge                 |
-| crossoverHallway              |
-| clinicalCorridor              |
-| adaLifeSafety                 |
-| gpTreatment                   |
+| `sterilization                ` |
+| `lab                          ` |
+| `consult                      ` |
+| `patientRestroom              ` |
+| `treatmentCoordinationStation ` |
+| `mobileTechArea               ` |
+| `doctorsOnDeck                ` |
+| `doctorsOffice                ` |
+| `officeManagerOffice          ` |
+| `businessOffice               ` |
+| `altBusinessOffice            ` |
+| `staffLounge                   `|
+| `patientLounge                ` |
+|` crossoverHallway             ` |
+| `clinicalCorridor             ` |
+| `adaLifeSafety                ` |
+| `gpTreatment                  ` |
 
 | Attribute         | Description                               |
 | ----------------- | --------------------------------------    |
-| "dimensions"      | {"ideal": [x,y]OR"none", "minimum": [x,y]OR"none", "maximum": [x,y]OR"none"}      |
-| "shape"           | "Rectangular"                             |
-| "orientation"     | {"narrow": ["reference","perpendicular OR parallel"]OR"none", "tlc": "    ", "h": "   "} |
-| "numberOfEntries": | [[min bound, entries num], [ , ], ...]   |
-| "entryLocation"   | [["rule", 1 OR 2 ()], [ , ], ...]         |   !!!
-| "clearancesADA"   | [clearance width, count]OR"none"          |
-| "clearancesIdeal" | [clearance amount, "details"]             |   !!!
-| "requirements"    | ["details", "condition"]                  |   !!!
-| "adjacency"       | {"direct": ["details"], "preferred": [], "seperation": []}    |   !!!
-| "visibility"      | {"required": "details", "not": " "}       |
-| "scalability"     | !! No convention !!                       |   !!!
+| `"dimensions"`      | ```{"ideal": [x,y]OR"none", "minimum": [x,y]OR"none", "maximum": [x,y]OR"none"}  ```    |
+| `"shape" `          | ```"Rectangular"   ```                          |
+| `"orientation" `    | ```{"narrow": ["reference","perpendicular OR parallel"]OR"none", "tlc": "    ", "h": "   "}``` |
+| `"numberOfEntries"` | ```[[min bound, entries num], [ , ], ...] ```  |
+| `"entryLocation" `  | ```[["rule", 1 OR 2 ()], [ , ], ...]  ```       |   !!!
+| `"clearancesADA" `  | ```[clearance width, count]OR"none"   ```       |
+| `"clearancesIdeal"` |``` [clearance amount, "details"]     ```        |   !!!
+| `"requirements"   ` | ```["details", "condition"]       ```           |   !!!
+| `"adjacency"       `| ```{"direct": ["details"], "preferred": [], "seperation": []} ```   |   !!!
+| `"visibility"    `  | ```{"required": "details", "not": " "}   ```    |
+| `"scalability"   `  | !! No convention !!                       |   !!!
 
 
 ### Blocking Diagram
