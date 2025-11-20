@@ -49,7 +49,7 @@
         "doctorOffice": {"qty": 1, "no": "what is this?", "size": [-1,-1], "people": -1},
         "doctorPrivateRestroom": {"qty": 1, "no": "what is this?", "size": [-1,-1], "people": -1},
         "associatesOffice": {"qty": 1, "no": "what is this?", "size": [-1,-1], "people": -1},
-        "associatesPrivateRestroom" {"qty": 1, "no": "what is this?", "size": [-1,-1], "people": -1},
+        "associatesPrivateRestroom": {"qty": 1, "no": "what is this?", "size": [-1,-1], "people": -1},
         "doctorNook": {"qty": 1, "no": "what is this?", "size": [-1,-1], "people": -1},
         "officeManager": {"qty": 1, "no": "what is this?", "size": [-1,-1], "people": -1},
         "marketing": {"qty": 1, "no": "what is this?", "size": [-1,-1], "people": -1},
