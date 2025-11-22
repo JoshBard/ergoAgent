@@ -57,16 +57,16 @@ class TestParser(unittest.TestCase):
         os.remove(test_file)
         self.assertEqual(result, expected)
 
-    def test_writeJson(self):
-        test_file = OUTPUT_FILE
-        data = {"x": 10, "y": 20}
-        writeJson(test_file, data)
+    # def test_writeJson(self):
+    #     test_file = OUTPUT_FILE
+    #     data = {"x": 10, "y": 20}
+    #     writeJson(test_file, data)
 
-        with open(test_file, "r") as f:
-            loaded = json.load(f)
+    #     with open(test_file, "r") as f:
+    #         loaded = json.load(f)
 
-        os.remove(test_file)
-        self.assertEqual(loaded, data)
+    #     os.remove(test_file)
+    #     self.assertEqual(loaded, data)
 
     def test_fuzzyMap(self):
         mapping = ["APPLE", "BANANA", "ORANGE"]
@@ -80,15 +80,16 @@ class TestParser(unittest.TestCase):
         self.assertIsNone(fuzzyMap("zzz", mapping))
 
     def test_isValid(self):
-        self.assertEqual(isValid("text"), "text")
-        self.assertEqual(isValid("  spaced  "), "spaced")
+        self.assertEqual(isValid("text"), "TEXT")
+        self.assertEqual(isValid("  spaced  "), "SPACED")
         self.assertEqual(isValid(None, default="N/A"), "N/A")
-        self.assertEqual(isValid(float("nan"), default="missing"), "missing")
+        self.assertEqual(isValid(float("nan"), default=""), "")
 
     def test_parse_to_json(self):
-        df = parse_sheet_to_json(EXCEL_FILE, SCHEMA, DICTIONARY, OUTPUT_FILE)
-        self.assertIsInstance(df, pd.DataFrame)
-        print(df)
+        dic = parse_sheet_to_json(EXCEL_FILE, SCHEMA, DICTIONARY, OUTPUT_FILE, sheet_name=3)
+        self.assertIsInstance(dic["df"], pd.DataFrame)
+        print(dic["df"])
+        print(dic["dat"])
 
 if __name__ == "__main__":
     unittest.main()

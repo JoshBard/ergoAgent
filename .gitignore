@@ -1,0 +1,5 @@
+**/__pycache__/
+
+#Output files
+params/out.json
+params/testout.json

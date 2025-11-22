@@ -1,12 +1,12 @@
 {
-    "meta": {
+    "META": {
         "CLIENT NAME": "clientName",
         "DATE": "date",
         "PROJECT TYPE": "projectType",
         "PROJECT SIZE": "projectSize"
     },
 
-    "public": {
+    "PUBLIC": {
         "VESTIBULE": "public.vestibule",
         "PATIENT LOUNGE": "public.patientLounge",
         "RESTROOMS": "public.patientRestroom",
@@ -22,7 +22,7 @@
         "TOY/PRIZE AREA": "public.toyArea"
     },
 
-    "clinical": {
+    "CLINICAL": {
         "TREATMENT ROOM": "clinical.treatment",
         "UNIVERSAL": "clinical.universal",
         "HYGIENE": "clinical.hygiene",
@@ -36,7 +36,7 @@
         "RECORDS ROOM": "clinical.records"
     },
 
-    "private": {
+    "PRIVATE": {
         "TEAM LOUNGE": "private.staffLounge",
         "CHANGING ROOM": "private.changingRoom",
         "NURSING ROOM": "private.nursingRoom",
@@ -63,13 +63,11 @@
         "PATIENT CARE CENTER": "private.patientCareCenter"
     },
 
-    "headers":{
-        "PUBLIC": "public",
-        "CLINICAL": "clinical",
-        "PRIVATE": "private",
+    "HEADERS":{
         "QTY": "qty",
         "NO": "no",
         "SIZE": "size",
-        "# of people": "people"
+        "#_OF_PEOPLE": "people",
+        "COMMENTS": "com" 
     }
 }
