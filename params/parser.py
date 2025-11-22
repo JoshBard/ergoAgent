@@ -152,10 +152,10 @@ def parse_sheet_to_json(excel_file, template_file, field_map_file, output_file, 
         space_raw = row["SPACES"].strip().upper()
         qty_raw = row["QTY"]
         #no_raw = row["NO"]
-        try:
+        try:                    #Have to do thiz bcuz some of the sheets don't have NO header 🤡
             no_raw = row["NO"]
         except:
-            no_raw = ""
+            no_raw = ""         #FIX👎THIS👎 need to make a better solution if existing sheets are already likethis 😞 
         size_raw = row["SIZE"]
         people_raw = row["#_OF_PEOPLE"]
         com_raw = row["COMMENTS"]
