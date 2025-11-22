@@ -1,6 +1,9 @@
 import pandas as pd # pyright: ignore[reportMissingModuleSource]
 import json
+import re
 from rapidfuzz import process, fuzz # pyright: ignore[reportMissingImports]
+from datetime import datetime   
+from dateutil import parser # pyright: ignore[reportMissingModuleSource]
 
 #CONFIG
 EXCEL_FILE = "exampleParameters.xlsx"
@@ -25,7 +28,7 @@ def parseSize(sizeStr):   #this will standardize 9x9,9'x9', 56"x56", 9'56"x9'56"
         .replace("X", " ")
         .replace("*", " ")
     )
-    
+
     parts = s.split()
     try:
         parts = [float(p) for p in parts]
@@ -39,6 +42,37 @@ def parseSize(sizeStr):   #this will standardize 9x9,9'x9', 56"x56", 9'56"x9'56"
         return [parts[0],parts[1]]
     else:
         return [-1,-1]
+    
+def parse_date_to_yyyymmdd(date_str, day_first=False):
+    #Parse a date string into YYYYMMDD format.
+    if not date_str or str(date_str).strip() == "":
+        return ""
+
+    date_str_clean = str(date_str).strip()
+
+    # Auto-detect day_first if not explicitly provided
+    if day_first is None:
+        # Look for numeric components
+        numbers = re.findall(r'\d+', date_str_clean)
+        if len(numbers) >= 3:
+            first, second = int(numbers[0]), int(numbers[1])
+            # If first > 12, it must be day
+            if first > 12:
+                day_first = True
+            # If second > 12, it must be day
+            elif second > 12:
+                day_first = False
+            else:
+                # ambiguous, default to American style
+                day_first = False
+        else:
+            day_first = False
+
+    try:
+        dt = parser.parse(date_str_clean, dayfirst=day_first, fuzzy=True)
+        return dt.strftime("%Y%m%d")
+    except (ValueError, TypeError):
+        return ""
 
 def normCols(df):
     df.columns = df.columns.str.strip().str.upper().str.replace(" ", "_")
@@ -89,10 +123,9 @@ def parse_sheet_to_json(excel_file, template_file, field_map_file, output_file, 
 
     #populate metadata
     data['clientName'] = isValid(meta_df.iloc[0,2])
-    data['date'] = isValid(meta_df.iloc[1,2])#Need a date parser
+    data['date'] = parse_date_to_yyyymmdd(meta_df.iloc[1,2])#Need a date parser
     data['projectType'] = isValid(meta_df.iloc[2,2])
 
-    import re
     numbers = re.findall(r'\d+', str(meta_df.iloc[3,2]))
     if len(numbers) >= 2:
         data['projectSize'] = [float(numbers[0]), float(numbers[1])]
@@ -112,7 +145,7 @@ def parse_sheet_to_json(excel_file, template_file, field_map_file, output_file, 
     df = df.drop(columns=[df.columns[0]])
 
     #Parse to Json
-    
+    potty_count = 0 #💩💩
     for _, row in df.iterrows():
         #Get raw cell data
         cat_raw = row["CATEGORIES"].strip().upper()#already uppercase so maybe redundant but this makes it certain
@@ -126,6 +159,14 @@ def parse_sheet_to_json(excel_file, template_file, field_map_file, output_file, 
         size_raw = row["SIZE"]
         people_raw = row["#_OF_PEOPLE"]
         com_raw = row["COMMENTS"]
+
+        #Chart has two private restrooms!!!👎Fix This🫩
+        if space_raw == "PRIVATE RESTROOM" & potty_count == 0:
+            space_raw = "PRIVATE RESTROOM A"
+            potty_count += 1
+        else:
+            space_raw = "PRIVATE RESTROOM B"
+
 
         #Determine highest level mapping key
         if cat_raw in mapping:

@@ -1,7 +1,7 @@
 import unittest
 from rapidfuzz import fuzz # pyright: ignore[reportMissingImports]
 import pandas as pd # pyright: ignore[reportMissingModuleSource]
-from parser import parseSize, normCols, cleanTextCol, loadJson, writeJson, fuzzyMap, isValid, parse_sheet_to_json
+from parser import parseSize, normCols, cleanTextCol, loadJson, writeJson, fuzzyMap, parse_date_to_yyyymmdd, isValid, parse_sheet_to_json
 import json
 import os
 
@@ -26,6 +26,42 @@ class TestParser(unittest.TestCase):
         self.assertEqual(parseSize(""), [-1, -1])
         self.assertEqual(parseSize(None), [-1, -1])
         self.assertEqual(parseSize("67 67 67 67 67"), [-1,-1])
+
+    def test_iso_format(self):
+        self.assertEqual(parse_date_to_yyyymmdd("2025-11-21"), "20251121")
+        self.assertEqual(parse_date_to_yyyymmdd("2025/11/21"), "20251121")
+
+    def test_american_format(self):
+        self.assertEqual(parse_date_to_yyyymmdd("11/21/2025"), "20251121")
+        self.assertEqual(parse_date_to_yyyymmdd("Nov 21, 2025"), "20251121")
+        self.assertEqual(parse_date_to_yyyymmdd("November 21 2025"), "20251121")
+        self.assertEqual(parse_date_to_yyyymmdd("11-21-2025"), "20251121")
+
+    def test_european_format(self):
+        self.assertEqual(parse_date_to_yyyymmdd("21/11/2025", day_first=True), "20251121")
+        self.assertEqual(parse_date_to_yyyymmdd("21-11-2025", day_first=True), "20251121")
+        self.assertEqual(parse_date_to_yyyymmdd("21 Nov 2025", day_first=True), "20251121")
+        self.assertEqual(parse_date_to_yyyymmdd("21 November 2025", day_first=True), "20251121")
+
+    def test_day_first_auto_detection(self):
+        # first > 12 → day-first
+        self.assertEqual(parse_date_to_yyyymmdd("21/03/2025"), "20250321")
+        # second > 12 → month-first
+        self.assertEqual(parse_date_to_yyyymmdd("03/21/2025"), "20250321")
+
+    def test_invalid_input(self):
+        self.assertEqual(parse_date_to_yyyymmdd(""), "")
+        self.assertEqual(parse_date_to_yyyymmdd(None), "")
+        self.assertEqual(parse_date_to_yyyymmdd("not a date"), "")
+
+    def test_with_ordinals(self):
+        self.assertEqual(parse_date_to_yyyymmdd("21st Nov 2025"), "20251121")
+        self.assertEqual(parse_date_to_yyyymmdd("Nov 21st 2025"), "20251121")
+        self.assertEqual(parse_date_to_yyyymmdd("1st Jan 2025"), "20250101")
+
+    def test_with_extra_text(self):
+        self.assertEqual(parse_date_to_yyyymmdd("on 21/11/2025 we start"), "20251121")
+        self.assertEqual(parse_date_to_yyyymmdd("Deadline: Nov 21, 2025"), "20251121")
 
     def test_read_excel(self):
         df = pd.read_excel(EXCEL_FILE, sheet_name=0)
