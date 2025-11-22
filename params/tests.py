@@ -6,7 +6,7 @@ import json
 import os
 
 #CONFIG
-EXCEL_FILE = "exampleParameters.xlsx"
+EXCEL_FILE = "customerParams.xlsx"
 SCHEMA = "parameters.json"
 OUTPUT_FILE = "testout.json"
 DICTIONARY = "mapping.json"
@@ -122,7 +122,7 @@ class TestParser(unittest.TestCase):
         self.assertEqual(isValid(float("nan"), default=""), "")
 
     def test_parse_to_json(self):
-        dic = parse_sheet_to_json(EXCEL_FILE, SCHEMA, DICTIONARY, OUTPUT_FILE, sheet_name=3)
+        dic = parse_sheet_to_json(EXCEL_FILE, SCHEMA, DICTIONARY, OUTPUT_FILE, sheet_name=0)
         self.assertIsInstance(dic["df"], pd.DataFrame)
         print(dic["df"])
         print(dic["dat"])

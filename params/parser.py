@@ -123,7 +123,7 @@ def parse_sheet_to_json(excel_file, template_file, field_map_file, output_file, 
 
     #populate metadata
     data['clientName'] = isValid(meta_df.iloc[0,2])
-    data['date'] = parse_date_to_yyyymmdd(meta_df.iloc[1,2])#Need a date parser
+    data['date'] = parse_date_to_yyyymmdd(meta_df.iloc[1,2])
     data['projectType'] = isValid(meta_df.iloc[2,2])
 
     numbers = re.findall(r'\d+', str(meta_df.iloc[3,2]))
@@ -161,11 +161,14 @@ def parse_sheet_to_json(excel_file, template_file, field_map_file, output_file, 
         com_raw = row["COMMENTS"]
 
         #Chart has two private restrooms!!!👎Fix This🫩
-        if space_raw == "PRIVATE RESTROOM" & potty_count == 0:
-            space_raw = "PRIVATE RESTROOM A"
-            potty_count += 1
-        else:
-            space_raw = "PRIVATE RESTROOM B"
+        if (space_raw == "PRIVATE RESTROOM"):
+            
+            if potty_count == 0:
+                space_raw = "PRIVATE RESTROOM A"
+                potty_count += 1
+            else:
+                space_raw = "PRIVATE RESTROOM B"
+            
 
 
         #Determine highest level mapping key
