@@ -44,10 +44,16 @@ def process_workbook(excel_path: Path, out_dir: Path):
             df = excel.parse(sheet)
         except Exception as e:
             print(f"    [SKIP] Could not read sheet '{sheet}': {e}")
+            logging.warning(
+                    f"Reading failed | File: '{excel_path}' | Sheet: '{sheet}'"
+                )
             continue
 
         if df.empty:
             print(f"    [SKIP] Sheet '{sheet}' is empty.")
+            logging.warning(
+                    f"Empty Sheet | File: '{excel_path}' | Sheet: '{sheet}'"
+                )
             continue
 
         try:
@@ -77,6 +83,9 @@ def process_workbook(excel_path: Path, out_dir: Path):
             print(f"    [OK] Wrote {out_file.name}")
         except Exception as e:
             print(f"    [ERROR] parse_sheet_to_json failed for '{sheet}': {e}")
+            logging.warning(
+                    f"Parse failed | File: '{excel_path}' | Sheet: '{sheet}'"
+                )
 
 def process_directory(source_dir: str):
     """Scan directory and process all xlsx files."""
