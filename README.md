@@ -49,63 +49,18 @@ Generates a final blocking diagram from the parameterized intermediate represent
 
 ergoAgent/  
 -README.md  
--ruleset.json
-
-***
-## JSON Schema Specifications:
-***
-
-### Client Parameters
-
-### Rule Set
-
-Format:
-```
-{
-    "roomType": {
-        "attribute1": "attribute details",
-        "attribute2": "details",
-        ...
-    },
-    ...
-}
-```
-| Room Types                    |
-| ------------------            |
-| `sterilization                ` |
-| `lab                          ` |
-| `consult                      ` |
-| `patientRestroom              ` |
-| `treatmentCoordinationStation ` |
-| `mobileTechArea               ` |
-| `doctorsOnDeck                ` |
-| `doctorsOffice                ` |
-| `officeManagerOffice          ` |
-| `businessOffice               ` |
-| `altBusinessOffice            ` |
-| `staffLounge                   `|
-| `patientLounge                ` |
-|` crossoverHallway             ` |
-| `clinicalCorridor             ` |
-| `adaLifeSafety                ` |
-| `gpTreatment                  ` |
-
-| Attribute         | Description                               |
-| ----------------- | --------------------------------------    |
-| `"dimensions"`      | ```{"ideal": [x,y]OR"none", "minimum": [x,y]OR"none", "maximum": [x,y]OR"none"}  ```    |
-| `"shape" `          | ```"Rectangular"   ```                          |
-| `"orientation" `    | ```{"narrow": ["reference","perpendicular OR parallel"]OR"none", "tlc": "    ", "h": "   "}``` |
-| `"numberOfEntries"` | ```[[min bound, entries num], [ , ], ...] ```  |
-| `"entryLocation" `  | ```[["rule", 1 OR 2 (req,pref)], [ , ], ...]  ```       |  
-| `"clearancesADA" `  | ```[clearance width, count]OR"none"   ```       |
-| `"clearancesIdeal"` |``` [clearance amount, "details"]     ```        |   !!!
-| `"requirements"   ` | ```["details", "condition"]       ```           |   !!!
-| `"adjacency"       `| ```{"direct": ["details"], "preferred": [], "seperation": []} ```   |   !!!
-| `"visibility"    `  | ```{"required": "details", "not": " "}   ```    |
-| `"scalability"   `  | !! No convention !!                       |   !!!
-
-
-### Blocking Diagram
+-.gitignore  
+-blocking/ 
+-params/  
+- mapping.json  
+- parameters.json
+- parser.py
+- processParams.py
+- tests.py
+- README.md  
+-ruleSet/
+- ruleset.json
+- README.md
 
 ***
 
@@ -116,4 +71,3 @@ Format:
 ## Notes
 
 - Repo init 11/17/25
-- README init 11/18/25
