@@ -110,10 +110,13 @@ def isValid(value, default=""):
         return str(value).strip().upper()
     else:
         return float(str(value).strip())
+    
+def isSheetValid(df):       #flesh out🫣😬
+    return True
 
 #Main Parser
 
-def parse_sheet_to_json(excel_file, template_file, field_map_file, output_file, sheet_name=0):
+def parse_sheet_to_json(excel_file, output_file, template_file=SCHEMA, field_map_file=DICTIONARY, sheet_name=0):
     
     data = loadJson(template_file)
     mapping = loadJson(field_map_file)
@@ -156,7 +159,7 @@ def parse_sheet_to_json(excel_file, template_file, field_map_file, output_file, 
         size_raw = row["SIZE"]
         people_raw = row["#_OF_PEOPLE"]
         com_raw = row["COMMENTS"]
-        
+
         if (space_raw == "PRIVATE RESTROOM"):   #Chart has two private restrooms!!!👎Fix This🫩
             
             if potty_count == 0:

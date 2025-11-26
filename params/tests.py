@@ -122,7 +122,7 @@ class TestParser(unittest.TestCase):
         self.assertEqual(isValid(float("nan"), default=""), "")
 
     def test_parse_to_json(self):
-        dic = parse_sheet_to_json(EXCEL_FILE, SCHEMA, DICTIONARY, OUTPUT_FILE, sheet_name=1)
+        dic = parse_sheet_to_json(EXCEL_FILE, OUTPUT_FILE, sheet_name=1)
         self.assertIsInstance(dic["df"], pd.DataFrame)
         print(dic["df"])
         print(dic["dat"])

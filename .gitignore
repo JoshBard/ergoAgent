@@ -3,6 +3,7 @@
 #Output files
 params/out.json
 params/testout.json
+params/jsonParams
 
 #data
 customerParams.xlsx
