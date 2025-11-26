@@ -4,6 +4,7 @@ import re
 from rapidfuzz import process, fuzz # pyright: ignore[reportMissingImports]
 from datetime import datetime   
 from dateutil import parser # pyright: ignore[reportMissingModuleSource]
+from typing import Union
 
 #CONFIG
 EXCEL_FILE = "exampleParameters.xlsx"
@@ -103,7 +104,7 @@ def fuzzyMap(input, mapping, score_bound=60):#not used, get rid probably
     
     return best_match[0] if best_match else None
 
-def isValid(value, default=""):
+def isValid(value, default: int | str = ""):
     if pd.isna(value):
         return default
     elif default == "":
@@ -116,7 +117,7 @@ def isSheetValid(df):       #flesh out🫣😬
 
 #Main Parser
 
-def parse_sheet_to_json(excel_file, output_file, template_file=SCHEMA, field_map_file=DICTIONARY, sheet_name=0):
+def parse_sheet_to_json(excel_file, output_file, template_file=SCHEMA, field_map_file=DICTIONARY, sheet_name: int | str = 0):
     
     data = loadJson(template_file)
     mapping = loadJson(field_map_file)
