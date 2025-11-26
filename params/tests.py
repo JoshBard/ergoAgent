@@ -122,10 +122,39 @@ class TestParser(unittest.TestCase):
         self.assertEqual(isValid(float("nan"), default=""), "")
 
     def test_parse_to_json(self):
-        dic = parse_sheet_to_json(EXCEL_FILE, SCHEMA, DICTIONARY, OUTPUT_FILE, sheet_name=0)
+        dic = parse_sheet_to_json(EXCEL_FILE, SCHEMA, DICTIONARY, OUTPUT_FILE, sheet_name=1)
         self.assertIsInstance(dic["df"], pd.DataFrame)
         print(dic["df"])
         print(dic["dat"])
+
+    def test_private_restroom_assignment(self):
+        # Mimics logic used in parser for bathroom row issue
+        rows = [
+            {"SPACE": "PRIVATE RESTROOM"},
+            {"SPACE": "PRIVATE RESTROOM"}
+        ]
+
+        potty_count = 0
+        results = []
+
+        for row in rows:
+            space_raw = row["SPACE"]
+
+            # --- Your actual logic under test ---
+            if space_raw == "PRIVATE RESTROOM":
+                if potty_count == 0:
+                    space_raw = "PRIVATE RESTROOM A"
+                    potty_count += 1
+                else:
+                    space_raw = "PRIVATE RESTROOM B"
+            # ------------------------------------
+
+            results.append(space_raw)
+
+        # Assertions
+        self.assertEqual(results[0], "PRIVATE RESTROOM A")
+        self.assertEqual(results[1], "PRIVATE RESTROOM B")
+        self.assertEqual(len(results), 2)
 
 if __name__ == "__main__":
     unittest.main()

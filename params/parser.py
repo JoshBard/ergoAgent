@@ -151,17 +151,13 @@ def parse_sheet_to_json(excel_file, template_file, field_map_file, output_file, 
         cat_raw = row["CATEGORIES"].strip().upper()#already uppercase so maybe redundant but this makes it certain
         space_raw = row["SPACES"].strip().upper()
         qty_raw = row["QTY"]
-        #no_raw = row["NO"]
-        try:                    #Have to do thiz bcuz some of the sheets don't have NO header 🤡
-            no_raw = row["NO"]
-        except:
-            no_raw = ""         #FIX👎THIS👎 need to make a better solution if existing sheets are already likethis 😞 
+        no_cell = row.iloc[3]
+        no_raw = "" if pd.isna(no_cell) else str(no_cell).strip()     #Needed because no header isn't always present
         size_raw = row["SIZE"]
         people_raw = row["#_OF_PEOPLE"]
         com_raw = row["COMMENTS"]
-
-        #Chart has two private restrooms!!!👎Fix This🫩
-        if (space_raw == "PRIVATE RESTROOM"):
+        
+        if (space_raw == "PRIVATE RESTROOM"):   #Chart has two private restrooms!!!👎Fix This🫩
             
             if potty_count == 0:
                 space_raw = "PRIVATE RESTROOM A"
