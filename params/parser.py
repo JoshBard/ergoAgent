@@ -7,9 +7,9 @@ from dateutil import parser # pyright: ignore[reportMissingModuleSource]
 from typing import Union
 
 #CONFIG
-EXCEL_FILE = "exampleParameters.xlsx"
+EXCEL_FILE = "customerParams.xlsx"
 SCHEMA = "parameters.json"
-OUTPUT_FILE = "out.json"
+OUTPUT_FILE = "testout.json"
 DICTIONARY = "mapping.json"
 
 #PARSING HELPERS
@@ -113,6 +113,8 @@ def isValid(value, default: int | str = ""):
         return float(str(value).strip())
     
 def isSheetValid(df):       #flesh out🫣😬
+    if not str(df.iloc[0,0]).strip().upper() == "DENTAL HAND-OFF SHEET":
+        return False
     return True
 
 #Main Parser
@@ -169,8 +171,6 @@ def parse_sheet_to_json(excel_file, output_file, template_file=SCHEMA, field_map
             else:
                 space_raw = "PRIVATE RESTROOM B"
             
-
-
         #Determine highest level mapping key
         if cat_raw in mapping:
             cat_map = mapping[cat_raw]

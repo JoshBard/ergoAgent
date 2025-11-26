@@ -1,9 +1,19 @@
 import os
 import sys
+import logging
 import pandas as pd # pyright: ignore[reportMissingModuleSource]
 from pathlib import Path
 from parser import parse_sheet_to_json, isSheetValid
 
+LOG_FILE = "sheet_validation.log"
+
+def init_logger():
+    logging.basicConfig(
+        filename=LOG_FILE,
+        filemode="a",
+        format="%(asctime)s | %(levelname)s | %(message)s",
+        level=logging.INFO
+    )
 
 def ensure_output_dir(base_dir: Path) -> Path:  #check if output dir exists and create it
     out_dir = base_dir / "jsonParams"
@@ -41,11 +51,17 @@ def process_workbook(excel_path: Path, out_dir: Path):
             continue
 
         try:
-            if not isSheetValid(df):    #checks if this sheet matches customer hand off sheet
+            if not isSheetValid(df):    # checks if this sheet matches customer hand-off sheet
                 print(f"    [SKIP] Sheet '{sheet}' failed validation.")
+                logging.warning(
+                    f"Validation failed | File: '{excel_path}' | Sheet: '{sheet}'"
+                )
                 continue
         except Exception as e:
             print(f"    [WARN] Validation error on '{sheet}': {e}")
+            logging.error(
+                f"Validation exception | File: '{excel_path}' | Sheet: '{sheet}' | Error: {e}"
+            )
             continue
 
         # Build output JSON filename
@@ -64,6 +80,7 @@ def process_workbook(excel_path: Path, out_dir: Path):
 
 def process_directory(source_dir: str):
     """Scan directory and process all xlsx files."""
+    init_logger()
     base = Path(source_dir).resolve()
     out_dir = ensure_output_dir(base)   #this places the output dir inside of the source dir, but could find better place
 

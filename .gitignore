@@ -4,6 +4,7 @@
 params/out.json
 params/testout.json
 params/jsonParams
+sheet_validation.log
 
 #data
 customerParams.xlsx
