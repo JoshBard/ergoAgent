@@ -14,23 +14,23 @@ This directory contains all components required for converting client-supplied *
 ## Key Components
 ***
 
-# `parser.py` - Parsing Library
+### `parser.py` - Parsing Library
 
 ***
 
-# `processParams.py` - Directory Batch Processor
+### `processParams.py` - Directory Batch Processor
 
 ***
 
-# `parameters.json` - Output Schema
+### `parameters.json` - Output Schema
 
 ***
 
-# `mapping.json` - Header & Category Mapping
+### `mapping.json` - Header & Category Mapping
 
 ***
 
-# `tests.py` - Unit Test Suite
+### `tests.py` - Unit Test Suite
 
 ***
 
