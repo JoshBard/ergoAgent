@@ -46,22 +46,22 @@ Generates a final blocking diagram from the parameterized intermediate represent
 ***
 
 ## Repository Structure
-
+```
 ergoAgent/  
 -README.md  
 -.gitignore  
 -blocking/ 
 -params/  
-- mapping.json  
-- parameters.json
-- parser.py
-- processParams.py
-- tests.py
-- README.md
+    -mapping.json  
+    -parameters.json  
+    -parser.py  
+    -processParams.py  
+    -tests.py  
+    -README.md  
 -ruleSet/
-- ruleset.json
-- README.md
-
+    -ruleset.json  
+    -README.md  
+```
 ***
 
 ## Usage
