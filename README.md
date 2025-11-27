@@ -57,7 +57,7 @@ ergoAgent/
 - parser.py
 - processParams.py
 - tests.py
-- README.md  
+- README.md
 -ruleSet/
 - ruleset.json
 - README.md
