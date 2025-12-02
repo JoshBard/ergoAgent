@@ -6,9 +6,28 @@ This directory contains all components required for converting client-supplied *
 
 ## Purpose
 
+The goal of this module is to:
+- **Ingest** client supplied `.xlsx` sheets
+- **Validate** that each sheet is the correct format
+- **Normalize and Parse** relevant data
+- **Map** spreadsheet to JSON keys
+- **Output** standardized JSON files
+
+The pipeline is centered around `parser.py`, which handles row-level parsing, cleaning, formatting, and schema population. `processParams.py` acts as a batch processor that scans directories, validates sheets, and generates JSON output in bulk.
+
 ***
 
 ## Directory Structure
+
+```
+desergo/params
+    mapping.json
+    parameters.json
+    parser.py
+    processParams.py
+    tests.py
+    README.md
+```
 
 ***
 ## Key Components
