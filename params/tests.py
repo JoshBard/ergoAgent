@@ -127,6 +127,9 @@ class TestParser(unittest.TestCase):
         print(dic["df"])
         print(dic["dat"])
 
+        #comment/uncomment to toggle output file deletion:
+        #os.remove(OUTPUT_FILE)
+
     def test_private_restroom_assignment(self):
         # Mimics logic used in parser for bathroom row issue
         rows = [
@@ -140,7 +143,7 @@ class TestParser(unittest.TestCase):
         for row in rows:
             space_raw = row["SPACE"]
 
-            # --- Your actual logic under test ---
+            #  actual logic under test 
             if space_raw == "PRIVATE RESTROOM":
                 if potty_count == 0:
                     space_raw = "PRIVATE RESTROOM A"
