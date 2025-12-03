@@ -24,24 +24,30 @@ Our Task is to streamline dental office layout creation by reducing repetitive m
 ### This project is composed the the following major components:
 ***
 
-## 1. Input Parsing and Normalization
+### 1. Input Parsing and Normalization
 Transforms client-provided information (desired rooms, room types, counts, spatial constraints, floor dimensions, etc.) into normalized, parameterized data structures.
 
-## 2. Rule Set Formalization
+### 2. Rule Set Formalization
 Converts the Design Ergonomics design ethos and rule constraints into a machine-readable form. Rules include size, orientation, access, visibility, and scalability constraints.
 
-## 3. Blocking Diagram Blueprint Parameterization
+### 3. Blocking Diagram Blueprint Parameterization
 Defines how blueprint-level concepts (room boundaries, canonical dimensions, relative placements, shared walls, etc.) are encoded.
 
-## 4. Parameterized Blocking Diagram Generation
+### 4. Parameterized Blocking Diagram Generation
 Produces an intermediate textual representation of the blocking diagram based on:
 * Parsed client parameters
 * Rule set constraints
 * Diagram schema
 * Optimized layout based on design ethos, either encoded itself or learned by training on encoded database
 
-## 5. Output Diagram Rendering
+### 5. Output Diagram Rendering
 Generates a final blocking diagram from the parameterized intermediate representation. (method TBD)
+
+***
+
+### The Major Component Flow and Interactions Illustrated:
+![Dataflow Diagram of BD automation](./images/workflowDiagram.png)
+This illustrates the dependencies between project components and shows how all parameterization and batch automation (input, constraints and output) must be completed in order to use them for the 2 learning components.
 
 ***
 
