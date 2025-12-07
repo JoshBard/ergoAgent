@@ -1,571 +1,384 @@
+from ruleset_consts import *
+
 ROOM_RULES = {
-    "sterilization": {
-        "comments": "room type: [[range of # of treatment rooms], [range of size of treatment rooms], [feet required for door, is long side]]",
+    STERILIZATION: {
+        "comments": (
+            "Room type models: compact/enhanced/elite. "
+            "Dimensions in inches; long axis grows with doors on long side."
+        ),
         "dimensions": {
-            "compact": [[5, 8], [110, 152], [3, 1]],
-            "enhanced": [[9, 14], [110, 168], [3, 1]],
-            "elite": [[15, 22], [110, 268], [3, 1]],
+            "compact": {
+                "treatmentRoomsMin": 5,
+                "treatmentRoomsMax": 8,
+                "baseWidthInches": 110,    # 9'-2"
+                "baseLengthInches": 152,   # 12'-8"
+                "additionalLongAxisPerDoorInches": 36
+            },
+            "enhanced": {
+                "treatmentRoomsMin": 9,
+                "treatmentRoomsMax": 14,
+                "baseWidthInches": 110,
+                "baseLengthInches": 184,   # 15'-4"
+                "additionalLongAxisPerDoorInches": 36
+            },
+            "elite": {
+                "treatmentRoomsMin": 15,
+                "treatmentRoomsMax": 22,
+                "baseWidthInches": 110,
+                "baseLengthInches": 268,   # 22'-4"
+                "additionalLongAxisPerDoorInches": 36
+            },
+            "largeOfficeStrategy": {
+                "treatmentRoomsMin": 23,
+                "note": "consider twoEnhanced or compactPlusElite"
+            }
         },
         "shape": "rectangular",
         "orientation": {
-            "narrow": ["long", "perpindicular"],
-            "tlc": [["long", "parallel"], ["clinicalCorridor", "center"]],
-            "h": [["sterilization", "parallel"], ["crossoverHallway", "center"]],
+            NARROW: {
+                "layoutMode": NARROW,
+                "axis": "long",
+                "relationToClinicalCorridor": "perpendicular"
+            },
+            THREE_LAYER_CAKE: {
+                "layoutMode": THREE_LAYER_CAKE,
+                "axis": "long",
+                "relationToClinicalCorridor": "parallel"
+            },
+            H_LAYOUT: {
+                "layoutMode": H_LAYOUT,
+                "relationToClinicalCorridor": "perpendicular",
+                "connects": "clinicalCorridorsEndToEnd",
+                "preferred": True
+            }
         },
-        "numberOfEntries": [[5, 1], [9, 2]],
-        "entryLocation": [
-            ["clinical hallway egress must be direct", 1],
-            ["doors connecting to clinical hallway must be at opposite ends of sterilization", 1],
-        ],
-        "clearancesADA": [34, 1],
-        "clearancesIdeal": [36, "crossoverHallway"],
-        "requirements": ["sterilization", "always"],
+        "access": {
+            "numberOfEntries": {
+                "byTreatmentRooms": [
+                    {"treatmentRoomsMin": 5, "treatmentRoomsMax": 8, "entries": 1},
+                    {"treatmentRoomsMin": 9, "treatmentRoomsMax": 999, "entries": 2},
+                ]
+            },
+            "entryLocationRules": [
+                {
+                    "description": "Clinical hallway egress must be direct",
+                    "type": "required"
+                },
+                {
+                    "description": "Doors connecting to clinical hallway must be at opposite ends of sterilization",
+                    "type": "required"
+                }
+            ]
+        },
+        "clearances": {
+            "adaDoorClearance": ADA_DOOR,
+            "ideal": {
+                "minDistanceFromCrossoverHallwayInches": 36
+            }
+        },
+        "requiredWhen": "always",
         "adjacency": {
-            "direct": "analogLab",
-            "preferred": "clinical",
-            "seperation": 0,
-        },
-        "visibility": {"not": "TBD"},
-        "scalability": "consider changing from first entry of dimensions",
-    },
-    "lab": "TBD",
-    "consult": {
-        "comments": "1 is required 2 is preferred in entrylocation",
-        "dimensions": {
-            "ideal": "treatment",
-            "minimum": [96, 96],
-            "maximum": [156, 120],
-        },
-        "shape": "rectangular",
-        "orientation": {
-            "narrow": "none",
-            "tlc": "none",
-            "h": "none",
-        },
-        "numberOfEntries": "tbd",
-        "entryLocation": [
-            ["near check-out", 1],
-            ["entry near clinical hallway", 2],
-        ],
-        "clearancesADA": [34, 1],
-        "clearancesIdeal": "none",
-        "requirements": "user input",
-        "adjacency": {
-            "direct": "none",
-            "preferred": "check-out within 15 feet",
-            "seperation": ["mechanical room", "lab"],
+            "direct": [
+                {"space": LAB, "condition": "ifAnalogLabExists"}
+            ],
+            # “center of clinical” simplified to “clinical corridor”
+            "preferred": [
+                {"space": CLINICAL_CORRIDOR}
+            ],
+            "mustNot": []
         },
         "visibility": {
-            "required": "none",
-            "not": "none",
+            "mustNotBeVisibleFrom": [CLINICAL_CORRIDOR],
+            "dirtySideMayBeMoreVisibleThanCleanSide": True
         },
-        "scalability": "user input",
+        "scalability": "TBD"
     },
-    "patientRestroom": {
-        "comments": "in scalability first number is num bathrooms, second number is min sqft",
+
+    LAB: {
+        "comments": "THIS WILL NEED TO BE FLUSHED OUT IN DETAIL LATER",
         "dimensions": {
-            "ideal": "none",
-            "minimum": [99, 93],
-            "maximum": "none",
+            "analogSmall": {
+                "minimum": {"widthInches": 96, "lengthInches": 96}
+            },
+            "analogLarge": {
+                "minimum": {"widthInches": 120, "lengthInches": 144}
+            },
+            "digitalSmall": {
+                "minimum": {"widthInches": 120, "lengthInches": 120}
+            },
+            "hybridSmall": {
+                "minimum": {"widthInches": 108, "lengthInches": 108}
+            },
+            "hybridOrDigitalLarge": {
+                "minimum": {"widthInches": 168, "lengthInches": 120}
+            }
         },
         "shape": "rectangular",
         "orientation": {
-            "narrow": "none",
-            "tlc": "none",
-            "h": "none",
+            NARROW: {
+                "layoutMode": NARROW,
+                "axis": "long",
+                "relationToSterilization": "parallel",
+                "connectionAxis": "short"
+            },
+            THREE_LAYER_CAKE: {
+                "layoutMode": THREE_LAYER_CAKE,
+                "axis": "long",
+                "relationToSterilization": "parallel",
+                "connectionAxis": "long"
+            },
+            H_LAYOUT: {
+                "layoutMode": H_LAYOUT,
+                "axis": "long",
+                "relationToSterilization": "parallel",
+                "connectionAxis": "long"
+            }
         },
-        "numberOfEntries": "tbd",
-        "entryLocation": [
-            ["not be accessed from within another room", 1],
-            ["not located directly in the patient lounge", 2],
-        ],
-        "clearancesADA": [34, 1],
-        "clearancesIdeal": "none",
-        "requirements": "user input",
+        "access": {
+            "numberOfEntries": {"fixed": 1},
+            "entryLocationRules": [
+                {
+                    "description": "Clinical hallway egress must not be direct",
+                    "type": "required"
+                }
+            ]
+        },
+        "clearances": {
+            "adaDoorClearance": ADA_DOOR
+        },
+        "requiredWhen": "userInput",
         "adjacency": {
-            "direct": "none",
-            "preferred": "check-out within 15 feet",
-            "seperation": "none",
+            "direct": [],
+            "preferred": [],
+            "mustNot": [
+                {"space": CONSULT},
+                {"space": DUAL_ENTRY_TREATMENT},
+                {"space": SIDE_TOE_TREATMENT},
+                {"space": TOE_TREATMENT},
+            ]
         },
         "visibility": {
-            "required": "none",
-            "not": "none",
+            "mustBeVisibleFrom": [],
+            "mustNotBeVisibleFrom": []
+        },
+        "scalability": "TBD"
+    },
+
+    CONSULT: {
+        "comments": "1 entry required, 2 preferred if second entry comes off clinical or crossover hallway.",
+        "dimensions": {
+            "idealMatchesTreatmentRoom": True,
+            "minimum": {"widthInches": 96, "lengthInches": 96},
+            "livingRoomConsult": {"widthInches": 156, "lengthInches": 120}
+        },
+        "shape": "rectangular",
+        "orientation": {
+            NARROW: {"layoutMode": NARROW, "allowed": False},
+            THREE_LAYER_CAKE: {"layoutMode": THREE_LAYER_CAKE, "allowed": True},
+            H_LAYOUT: {"layoutMode": H_LAYOUT, "allowed": True}
+        },
+        "access": {
+            "numberOfEntries": {
+                "required": 1,
+                "preferredMax": 2,
+                "secondEntrySources": [CLINICAL_CORRIDOR, CROSSOVER_HALLWAY]
+            },
+            "entryLocationRules": [
+                {"description": "One entry near check-out", "type": "required"},
+                {"description": "One entry near clinical hallway", "type": "preferred"}
+            ]
+        },
+        "clearances": {
+            "adaDoorClearance": ADA_DOOR
+        },
+        "requiredWhen": "userInput",
+        "adjacency": {
+            "direct": [],
+            "preferred": [
+                {"space": CHECK_OUT, "maxDistanceFeet": 15}
+            ],
+            "mustNot": [
+                {"space": MECHANICAL},
+                {"space": LAB}
+            ]
+        },
+        "visibility": {
+            "mustBeVisibleFrom": [],
+            "mustNotBeVisibleFrom": []
+        },
+        "scalability": "userInput"
+    },
+
+    PATIENT_RESTROOM: {
+        "comments": "Scalability uses occupancy and square footage thresholds.",
+        "dimensions": {
+            "minimum": {"widthInches": 99, "lengthInches": 93}
+        },
+        "shape": "rectangular",
+        "orientation": {
+            NARROW: {"layoutMode": NARROW, "allowed": True},
+            THREE_LAYER_CAKE: {"layoutMode": THREE_LAYER_CAKE, "allowed": True},
+            H_LAYOUT: {"layoutMode": H_LAYOUT, "allowed": True}
+        },
+        "access": {
+            "numberOfEntries": {"fixed": 1},
+            "entryLocationRules": [
+                {"description": "Must not be accessed from within another room", "type": "required"},
+                {"description": "Ideally not located directly in the patient lounge", "type": "preferred"}
+            ]
+        },
+        "clearances": {
+            "adaDoorClearance": ADA_DOOR
+        },
+        "requiredWhen": "userInput",
+        "adjacency": {
+            "direct": [],
+            "preferred": [
+                {"space": CHECK_OUT, "maxDistanceFeet": 15}
+            ],
+            "mustNot": []
+        },
+        "visibility": {
+            "mustBeVisibleFrom": [],
+            "mustNotBeVisibleFrom": []
         },
         "scalability": {
-            "size": [[1, 1], [2, 1500]],
-            "occupants": [[3, 50], [1, "additional 50 occupants after first 50 occupants"]],
-        },
-    },
-    "treatmentCoordinationStation": {
-        "comments": "in scalability first number is num bathrooms, second number is min sqft",
-        "dimensions": {
-            "ideal": "none",
-            "minimum": [[1, [42, 54]], [2, [42, 90]]],
-            "maximum": "none",
-        },
-        "shape": "rectangular",
-        "orientation": {
-            "narrow": ["clinical hallway", "parallel"],
-            "tlc": ["clinical hallway", "parallel"],
-            "h": ["clinical hallway", "parallel"],
-        },
-        "numberOfEntries": "tbd",
-        "entryLocation": [
-            ["not be accessed from within another room", 1],
-            ["not located directly in the patient lounge", 2],
-        ],
-        "clearancesADA": [34, 1],
-        "clearancesIdeal": "not within 36 of crossover hallway",
-        "requirements": "user input",
-        "adjacency": {
-            "direct": "none",
-            "preferred": "center of clinical",
-            "seperation": "patient restroom",
-        },
-        "visibility": {
-            "required": "none",
-            "not": "none",
-        },
-        "scalability": "tbd",
-    },
-    "mobileTechArea": {
-        "comments": "in scalability first number is num bathrooms, second number is min sqft",
-        "dimensions": {
-            "ideal": "none",
-            "minimum": [42, 84],
-            "maximum": "none",
-        },
-        "shape": "rectangular",
-        "orientation": {
-            "narrow": ["clinical hallway", "parallel"],
-            "tlc": ["clinical hallway", "parallel"],
-            "h": ["clinical hallway", "parallel"],
-        },
-        "numberOfEntries": "tbd",
-        "entryLocation": [
-            [["sterilization corridor", "clinical hallway"], 1],
-            ["not open directly into crossover hallway", 1],
-        ],
-        "clearancesADA": [34, 1],
-        "clearancesIdeal": "not within 36 of crossover hallway",
-        "requirements": "always",
-        "adjacency": {
-            "direct": "none",
-            "preferred": "center of clinical",
-            "seperation": ["crossover hallway", "patient lounge", "reception"],
-        },
-        "visibility": {
-            "required": "none",
-            "not": ["waiting", "reception", "checkout"],
-        },
-        "scalability": ["treatmentRooms", [[1, 5], [2, 10]]],
-    },
-    "doctorsOnDeck": {
-        "comments": "in scalability first number is num bathrooms, second number is min sqft",
-        "dimensions": {
-            "ideal": "none",
-            "minimum": [
-                ["single", [66, 90]],
-                ["dual", [66, 114]],
-                ["longDual", [90, 102]],
+            "bySquareFootage": [
+                {"buildingSqFtMax": 1500, "minRestrooms": 1},
+                {"buildingSqFtMin": 1501, "minRestrooms": 2}
             ],
-            "maximum": "none",
-        },
-        "shape": "rectangular",
-        "orientation": {
-            "narrow": ["clinical hallway", "along"],
-            "tlc": ["clinical hallway", "along"],
-            "h": ["clinical hallway", "along"],
-        },
-        "numberOfEntries": 1,
-        "entryLocation": [
-            ["clinical hallway", 1],
-            ["not open directly into patient lounge or reception", 2],
-        ],
-        "clearancesADA": [34, 1],
-        "clearancesIdeal": "not within 36 of crossover hallway",
-        "requirements": "5+ treatment rooms without another doctor office on the clinical floor",
-        "adjacency": {
-            "direct": "clinical hallway",
-            "preferred": ["center of treatment", "consult rooms"],
-            "seperation": ["staff lounge", "patient lounge", "reception"],
-        },
-        "visibility": {
-            "required": "clinical hallways",
-            "not": ["waiting", "reception", "checkout"],
-        },
-        "scalability": ["treatmentRooms", [["single", 1], ["dual", 7]]],
+            "byOccupancy": [
+                {"occupantsMax": 50, "minRestrooms": 0},
+                {"occupantsMin": 51, "rule": "addOneRestroomPer50Occupants"}
+            ]
+        }
     },
-    "doctorOffice": {
-        "comments": "in scalability first number is num bathrooms, second number is min sqft",
+
+    CLINICAL_CORRIDOR: {
+        "comments": "Main clinical circulation spine connecting treatment and support spaces.",
         "dimensions": {
-            "ideal": "none",
-            "minimum": [
-                ["single", [96, 96]],
-                ["two/three", [120, 156]],
-                ["three+", [90, "60 per doctor"]],
-            ],
-            "maximum": "none",
-        },
-        "shape": "rectangular",
-        "orientation": {
-            "narrow": ["clinical hallway", "along"],
-            "tlc": ["clinical hallway", "along"],
-            "h": ["second crossover", "along"],
-        },
-        "numberOfEntries": 1,
-        "entryLocation": [
-            [["clinical hallway", "second crossover hallway h layout"], 1],
-            ["not open directly into patient lounge or reception", 2],
-        ],
-        "clearancesADA": [34, 1],
-        "clearancesIdeal": "not within 36 of crossover hallway",
-        "requirements": "user input",
-        "adjacency": {
-            "direct": [["clinical hallway", "second crossover hallway h layout"], "doctorPrivateRestroom"],
-            "preferred": ["center of treatment", "consult rooms"],
-            "seperation": ["staff lounge", "patient lounge", "reception"],
-        },
-        "visibility": {
-            "required": "none",
-            "not": "none",
-        },
-        "scalability": [
-            [1, ["1 treatment room", "no doctors nook"]],
-            ["two/three", "5 treatment room"],
-            [["two/three", "doctors nook"], 10],
-        ],
-    },
-    "doctorPrivateRestroom": {
-        "comments": "decided to split into seperate room",
-        "dimensions": {
-            "ideal": "none",
-            "minimum": [60, 60],
-            "maximum": "none",
-        },
-        "shape": "rectangular",
-        "orientation": {
-            "narrow": "none",
-            "tlc": "none",
-            "h": "none",
-        },
-        "numberOfEntries": 1,
-        "entryLocation": [["doctorOffice", 1], ["no other entrance", 1]],
-        "clearancesADA": [34, 1],
-        "clearancesIdeal": "none",
-        "requirements": "user input",
-        "adjacency": {
-            "direct": ["doctorOffice"],
-            "preferred": "none",
-            "seperation": "all",
-        },
-        "visibility": {
-            "required": "none",
-            "not": "none",
-        },
-        "scalability": "none",
-    },
-    "officeManagerOffice": {
-        "comments": "none",
-        "dimensions": {
-            "ideal": "none",
-            "minimum": [90, 66],
-            "maximum": [96, 96],
-        },
-        "shape": "rectangular",
-        "orientation": {
-            "narrow": "none",
-            "tlc": "none",
-            "h": "none",
-        },
-        "numberOfEntries": 1,
-        "entryLocation": [
-            [["within 10 ft check-in", "within 10 ft check-out", "within 10 ft business office"], 1],
-            ["not patient lounge", 1],
-            ["not patient restrooms", 2],
-        ],
-        "clearancesADA": [34, 1],
-        "clearancesIdeal": "none",
-        "requirements": "always",
-        "adjacency": {
-            "direct": "none",
-            "preferred": ["reception", "business office", "HR offices"],
-            "seperation": ["treatmentRoom", "sterilization", "lab"],
-        },
-        "visibility": {
-            "required": "none",
-            "not": "waiting room",
-        },
-        "scalability": [1, 1],
-    },
-    "businessOffice": {
-        "comments": "none",
-        "dimensions": {
-            "small": [90, 96],
-            "medium": [114, 96],
-            "large": [114, 144],
-        },
-        "shape": "rectangular",
-        "orientation": {
-            "narrow": "none",
-            "tlc": "none",
-            "h": "none",
-        },
-        "numberOfEntries": [[1, 1], [2, 2]],
-        "entryLocation": [
-            [["within 10 ft check-in", "within 10 ft check-out", "within 10 ft reception"], 1],
-            [["optional second entrace hallway", 1], ["optional second entrance officeManagerOffice", 1]],
-            ["not patient restrooms", 1],
-        ],
-        "clearancesADA": [34, 1],
-        "clearancesIdeal": [36, "crossoverHallway"],
-        "requirements": "always if there are more than 4 treatment rooms",
-        "adjacency": {
-            "direct": ["reception", "checkIn", "checkOut"],
-            "preferred": "officeManagerOffice",
-            "seperation": ["treatmentRoom", "sterilization", "lab", "patientRestroom"],
-        },
-        "visibility": {
-            "required": ["indirect oversight reception", "indirect oversight checkIn"],
-            "not": "patient-facing zones",
-        },
-        "scalability": [
-            ["small", 1],
-            ["medium", 7],
-            ["large", 11],
-            ["commandCenter", 12],
-        ],
-    },
-    "ALTBusinessOffice": {
-        "comments": "none",
-        "dimensions": "none",
-        "shape": "rectangular",
-        "orientation": {
-            "narrow": [["reception", "checkIn"], "behind"],
-            "tlc": ["checkOut", "adjacent"],
-            "h": "TBD",
-        },
-        "numberOfEntries": [[1, 1], [2, 2]],
-        "entryLocation": [
-            [["within 10 ft check-in", "within 10 ft check-out", "within 10 ft reception"], 1],
-            [["optional second entrace hallway", 1], ["optional second entrance officeManagerOffice", 1]],
-            ["not patient lounge", 1],
-        ],
-        "clearancesADA": [34, 1],
-        "clearancesIdeal": [36, "crossoverHallway"],
-        "requirements": "always if there are more than 4 treatment rooms",
-        "adjacency": {
-            "direct": ["reception", "checkIn", "checkOut"],
-            "preferred": "officeManagerOffice",
-            "seperation": ["treatmentRoom", "sterilization", "lab", "patientRestroom"],
-        },
-        "visibility": {
-            "required": ["indirect oversight reception", "indirect oversight checkIn"],
-            "not": "patient-facing zones",
-        },
-        "scalability": [
-            ["two/three", 1],
-            ["four/six", 7],
-            ["seven plus", 13],
-        ],
-    },
-    "staffLounge": {
-        "comments": "none",
-        "dimensions": {
-            "seat": ["4032 net square inches", "treatmentRoom"],
-            "kitchenette": "TBD",
-            "locker": "TBD",
-        },
-        "shape": "rectangular",
-        "orientation": {
-            "narrow": ["patient", "far"],
-            "tlc": ["clinicalCorrider", "back"],
-            "h": "TBD",
-        },
-        "numberOfEntries": [[1, 1], [2, 2]],
-        "entryLocation": [["staff corridor", 1], ["not patientLounge", 1]],
-        "clearancesADA": [34, 1],
-        "clearancesIdeal": "none",
-        "requirements": "always",
-        "adjacency": {
-            "direct": "none",
-            "preferred": ["staffEntry", "staffRestrooms"],
-            "seperation": ["patientLounge", "reception", "checkIn"],
-        },
-        "visibility": {
-            "required": ["indirect oversight reception", "indirect oversight checkIn"],
-            "not": "patient-facing zones",
-        },
-        "scalability": {
-            "seat": ["4032 net square inches", "treatmentRoom"],
-            "kitchenette": "TBD",
-            "locker": "TBD",
-        },
-    },
-    "patientLounge": {
-        "comments": "none",
-        "dimensions": {
-            "seat": ["4320 net square inches", "treatmentRoom"],
-            "refreshment": "TBD",
-            "checkIn/checkOut": "TBD",
-        },
-        "shape": "rectangular",
-        "orientation": {
-            "narrow": ["front", "close"],
-            "tlc": "TBD",
-            "h": "TBD",
-        },
-        "numberOfEntries": [[1, 1], [2, 2]],
-        "entryLocation": [["reception", 1], ["checkIn", 1], ["not clinicalCorridor", 1]],
-        "clearancesADA": [34, 1],
-        "clearancesIdeal": "none",
-        "requirements": "always",
-        "adjacency": {
-            "direct": ["reception", "checkIn"],
-            "preferred": "patientRestrooms",
-            "seperation": ["staffLounge", "sterilization", "lab", "mechanicalRoom"],
-        },
-        "visibility": {
-            "required": ["receptionDesk", "entry"],
-            "not": ["clinicalCorridor", "treatment"],
-        },
-        "scalability": ["1.5 seats", "treatmentRoom"],
-    },
-    "crossoverHallway": {
-        "comments": "none",
-        "dimensions": {
-            "minimum": ["60", "1"],
-            "maximum": ["72", "1"],
-        },
-        "shape": "rectangular",
-        "orientation": {
-            "narrow": "none",
-            "tlc": "none",
-            "h": ["clinical hallways", "between"],
-        },
-        "numberOfEntries": 2,
-        "entryLocation": "clinicalCorridors",
-        "clearancesADA": [34, 1],
-        "clearancesIdeal": "none",
-        "requirements": ["clinicalCorridor", 2],
-        "adjacency": {
-            "direct": "clinicalCorridor",
-            "preferred": "none",
-            "seperation": ["staffLounge", "patientLounge", "reception", "checkIn", "checkout"],
-        },
-        "visibility": {
-            "required": "none",
-            "not": ["entry", "lounge", "reception", "sterilization", "treatment", "restrooms"],
-        },
-        "scalability": [1, 7200],
-    },
-    "clinicalCorridor": {
-        "comments": "none",
-        "dimensions": {
-            "minimum": [60, "treatment"],
-            "maximum": [72, "treatment"],
+            "width": {
+                "minClearWidthInches": CORRIDOR_MIN_CLEAR_WIDTH_IN,
+                "preferredMaxWidthInches": CORRIDOR_PREFERRED_MAX_WIDTH_IN
+            }
         },
         "shape": "rectilinear",
         "orientation": {
-            "narrow": "continuous",
-            "tlc": "none",
-            "h": ["clinicalCorrider", "parallel"],
+            NARROW: {
+                "layoutMode": NARROW,
+                "description": "One continuous corridor spine with treatment rooms branching off"
+            },
+            THREE_LAYER_CAKE: {
+                "layoutMode": THREE_LAYER_CAKE,
+                "description": "Central spine flanked by treatment; sterilization and lab mid-corridor"
+            },
+            H_LAYOUT: {
+                "layoutMode": H_LAYOUT,
+                "description": "Two parallel corridor spines connected by crossover hallways"
+            }
         },
-        "numberOfEntries": 2,
-        "entryLocation": ["not", ["patientLounge", "reception", "staffLounge"]],
-        "clearancesADA": "ADA ruleset for corridor width",
-        "clearancesIdeal": "none",
-        "requirements": ["always", "treatment"],
+        "access": {
+            "crossoversRequiredEveryFeet": 60
+        },
+        "clearances": {
+            "adaCorridorRuleset": "ADA ruleset for corridor width, turning radii, and passing spaces"
+        },
+        "requiredWhen": "treatmentRoomsPresent",
         "adjacency": {
-            "direct": ["treatment", "sterilization", "mobileTech", "doctorNook", "crossoverHallway"],
-            "preferred": ["consult", "patientRestrooms"],
-            "seperation": ["patientLounge", "reception", "staffLounge", "lab", "mechanicalRoom"],
+            "direct": [
+                {"space": DUAL_ENTRY_TREATMENT},
+                {"space": SIDE_TOE_TREATMENT},
+                {"space": TOE_TREATMENT},
+                {"space": STERILIZATION},
+                {"space": MOBILE_TECH},
+                {"space": DOCTOR_NOOK},
+                {"space": CROSSOVER_HALLWAY}
+            ],
+            "preferred": [
+                {"space": CONSULT},
+                {"space": PATIENT_RESTROOM}
+            ],
+            "mustNot": [
+                {"space": PATIENT_LOUNGE, "relation": "terminatingInto"},
+                {"space": RECEPTION, "relation": "terminatingInto"},
+                {"space": STAFF_LOUNGE, "relation": "terminatingInto"},
+                {"space": LAB, "relation": "directConnectionDiscouraged"},
+                {"space": MECHANICAL, "relation": "directConnectionDiscouraged"}
+            ]
         },
         "visibility": {
-            "required": ["patient", "consult", "restrooms", "imaging areas"],
-            "not": "none",
+            "avoidVisibilityFrom": PATIENT_VISUAL_ZONES,
+            "wayfindingFor": [PATIENT_RESTROOM, CONSULT]
         },
-        "scalability": "treatment",
+        "scalability": "corridorLengthAndCrossoversScaleWithTreatmentRooms"
     },
-    "dualEntryTreatment": {
-        "comments": "none",
+
+    DUAL_ENTRY_TREATMENT: {
+        "comments": "Treatment room with two doorless openings on 12 o'clock headwall.",
         "dimensions": {
-            "minimum": [97, 126],
-            "ideal": [100, 126],
-            "maximum": [108, 126],
+            "minimum": {"widthInches": 97, "lengthInches": 126},
+            "ideal": {"widthInches": 100, "lengthInches": 126},
+            "maximum": {"widthInches": 108, "lengthInches": 126}
         },
-        "shape": "none",
-        "orientation": {
-            "narrow": "continuous",
-            "tlc": "none",
-            "h": "none",
+        "chair": {
+            "orientation": "longAxis12To6",
+            "twelveOclockWall": "headwall",
+            "sixOclockWall": "toeWall",
+            "threeOclockWall": "right",
+            "nineOclockWall": "left"
         },
-        "numberOfEntries": 2,
-        "entryLocation": "clinicalCorridor",
-        "clearancesADA": [34, 1],
-        "clearancesIdeal": "none",
-        "requirements": "none",
+        "shape": "rectangular",
+        "orientationLayout": {
+            NARROW: {"layoutMode": NARROW, "allowed": True},
+            THREE_LAYER_CAKE: {"layoutMode": THREE_LAYER_CAKE, "allowed": True},
+            H_LAYOUT: {"layoutMode": H_LAYOUT, "allowed": True}
+        },
+        "access": {
+            "numberOfEntries": {"fixed": 2},
+            "entryLocationRules": [
+                {
+                    "description": "Two openings on 12 o'clock headwall, straddling chair head",
+                    "type": "required"
+                },
+                {
+                    "description": "Left opening toward 9 o'clock wall must be 36\" clear",
+                    "type": "required",
+                    "side": "left",
+                    "minClearWidthInches": 36
+                },
+                {
+                    "description": "Right opening toward 3 o'clock wall 25–36\" clear",
+                    "type": "required",
+                    "side": "right",
+                    "minClearWidthInches": 25,
+                    "typicalClearWidthInches": 28,
+                    "maxClearWidthInches": 36
+                },
+                {
+                    "description": "Headwall cabinet section between openings min 36\" clear",
+                    "type": "required",
+                    "minClearWidthInches": 36
+                }
+            ]
+        },
+        "clearances": {
+            "doorType": "openingNoSwingDoor"
+        },
+        "requiredWhen": "treatmentRoomTypeDualEntrySelected",
         "adjacency": {
-            "direct": "clinicalCorridor",
-            "preferred": "none",
-            "seperation": "opposite dualEntryTreatment",
+            "direct": [
+                {"space": CLINICAL_CORRIDOR, "via": "leftOpening"},
+                {"space": CLINICAL_CORRIDOR, "via": "rightOpening"}
+            ],
+            "preferred": [],
+            "mustNot": [
+                {"space": DUAL_ENTRY_TREATMENT, "relation": "directlyOppositeAcrossCorridor"}
+            ]
         },
-        "visibility": "none",
-        "scalability": "none",
-        "chair": "TBD",
-    },
-    "sideToeTreatment": {
-        "comments": "none",
-        "dimensions": {
-            "minimum": [97, 132],
-            "ideal": [100, 132],
-            "maximum": [108, 132],
+        "visibility": {
+            "fromCorridor": "typical",
+            "acousticConcernIfOpposing": True
         },
-        "shape": "none",
-        "orientation": {
-            "narrow": "continuous",
-            "tlc": "none",
-            "h": "none",
-        },
-        "numberOfEntries": 1,
-        "entryLocation": "TBD",
-        "clearancesADA": [34, 1],
-        "clearancesIdeal": "none",
-        "requirements": "none",
-        "adjacency": {
-            "direct": "clinicalCorridor",
-            "preferred": "none",
-            "seperation": "none",
-        },
-        "visibility": "none",
-        "scalability": "none",
-        "chair": "TBD",
-    },
-    "toeTreatment": {
-        "comments": "none",
-        "dimensions": {
-            "minimum": [97, 132],
-            "ideal": [100, 132],
-            "maximum": [108, 132],
-        },
-        "shape": "none",
-        "orientation": {
-            "narrow": "continuous",
-            "tlc": "none",
-            "h": "none",
-        },
-        "numberOfEntries": 1,
-        "entryLocation": "clinicalCorridor",
-        "clearancesADA": [34, 1],
-        "clearancesIdeal": "none",
-        "requirements": "none",
-        "adjacency": {
-            "direct": "clinicalCorridor",
-            "preferred": "none",
-            "seperation": "none",
-        },
-        "visibility": "none",
-        "scalability": "none",
-        "chair": "TBD",
-    },
+        "scalability": "TBD"
+    }
 }

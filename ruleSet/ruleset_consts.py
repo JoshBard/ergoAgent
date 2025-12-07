@@ -1,0 +1,88 @@
+# -----------------------------
+# Shared constants / identifiers for ruleset
+# -----------------------------
+
+# Layout modes
+NARROW = "narrow"
+THREE_LAYER_CAKE = "threeLayerCake"
+H_LAYOUT = "hLayout"
+
+# Space identifiers
+STERILIZATION = "sterilization"
+LAB = "lab"
+CONSULT = "consult"
+PATIENT_RESTROOM = "patientRestroom"
+TREATMENT_COORDINATION = "treatmentCoordinationStation"
+MOBILE_TECH = "mobileTechArea"
+DOCTORS_ON_DECK = "doctorsOnDeck"
+DOCTOR_OFFICE = "doctorOffice"
+DOCTOR_PRIVATE_RESTROOM = "doctorPrivateRestroom"
+OFFICE_MANAGER = "officeManagerOffice"
+BUSINESS_OFFICE = "businessOffice"
+ALT_BUSINESS_OFFICE = "ALTBusinessOffice"
+STAFF_LOUNGE = "staffLounge"
+PATIENT_LOUNGE = "patientLounge"
+CROSSOVER_HALLWAY = "crossoverHallway"
+CLINICAL_CORRIDOR = "clinicalCorridor"
+DUAL_ENTRY_TREATMENT = "dualEntryTreatment"
+SIDE_TOE_TREATMENT = "sideToeTreatment"
+TOE_TREATMENT = "toeTreatment"
+
+# Supporting / front-of-house identifiers
+RECEPTION = "reception"
+CHECK_IN = "checkIn"
+CHECK_OUT = "checkOut"
+MECHANICAL = "mechanicalRoom"
+STAFF_ENTRY = "staffEntry"
+STAFF_RESTROOMS = "staffRestrooms"
+DOCTOR_NOOK = "doctorNook"
+
+# -------------
+# Shared groups
+# -------------
+
+PATIENT_FACING = [
+    PATIENT_LOUNGE,
+    RECEPTION,
+    CHECK_IN,
+    CHECK_OUT,
+]
+
+CLINICAL = [
+    STERILIZATION,
+    LAB,
+    MOBILE_TECH,
+    DOCTORS_ON_DECK,
+    DOCTOR_OFFICE,
+    DUAL_ENTRY_TREATMENT,
+    SIDE_TOE_TREATMENT,
+    TOE_TREATMENT,
+    CLINICAL_CORRIDOR,
+    CROSSOVER_HALLWAY,
+]
+
+SUPPORT = [
+    STAFF_LOUNGE,
+    STAFF_ENTRY,
+    STAFF_RESTROOMS,
+    OFFICE_MANAGER,
+    BUSINESS_OFFICE,
+    ALT_BUSINESS_OFFICE,
+]
+
+PATIENT_VISUAL_ZONES = PATIENT_FACING
+
+# -------------------------------------
+# ADA / Life-safety constants
+# -------------------------------------
+
+# Units in inches
+
+ADA_MIN_DOOR_CLEAR_WIDTH_IN = 34
+CORRIDOR_MIN_CLEAR_WIDTH_IN = 60   
+CORRIDOR_PREFERRED_MAX_WIDTH_IN = 72 
+
+ADA_DOOR = {
+    "minDoorClearWidthInches": ADA_MIN_DOOR_CLEAR_WIDTH_IN,
+    "required": True,
+}
