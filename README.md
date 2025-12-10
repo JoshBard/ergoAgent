@@ -46,7 +46,7 @@ Generates a final blocking diagram from the parameterized intermediate represent
 ***
 
 ### The Major Component Flow and Interactions Illustrated:
-![Dataflow Diagram of BD automation](./images/workflowDiagram.png)
+![Dataflow Diagram of BD automation](./images/modulesDiagram.png)
 This illustrates the dependencies between project components and shows how all parameterization and batch automation (input, constraints and output) must be completed in order to use them for the 2 learning components.
 
 ***
