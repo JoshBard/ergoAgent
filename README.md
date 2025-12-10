@@ -65,7 +65,8 @@ ergoAgent/
     -tests.py  
     -README.md  
 -ruleSet/
-    -ruleset.json  
+    -ruleset_consts.py  
+    -rulest.py  
     -README.md  
 ```
 ***
