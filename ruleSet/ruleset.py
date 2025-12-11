@@ -10,22 +10,22 @@ ROOM_RULES = {
             "compact": {
                 "treatmentRoomsMin": 5,
                 "treatmentRoomsMax": 8,
-                "baseWidthInches": 110,    # 9'-2"
-                "baseLengthInches": 152,   # 12'-8"
+                "baseWidthInches": 110,
+                "baseLengthInches": 152,
                 "additionalLongAxisPerDoorInches": 36
             },
             "enhanced": {
                 "treatmentRoomsMin": 9,
                 "treatmentRoomsMax": 14,
                 "baseWidthInches": 110,
-                "baseLengthInches": 184,   # 15'-4"
+                "baseLengthInches": 184,
                 "additionalLongAxisPerDoorInches": 36
             },
             "elite": {
                 "treatmentRoomsMin": 15,
                 "treatmentRoomsMax": 22,
                 "baseWidthInches": 110,
-                "baseLengthInches": 268,   # 22'-4"
+                "baseLengthInches": 268,
                 "additionalLongAxisPerDoorInches": 36
             },
             "largeOfficeStrategy": {
@@ -81,7 +81,6 @@ ROOM_RULES = {
             "direct": [
                 {"space": LAB, "condition": "ifAnalogLabExists"}
             ],
-            # “center of clinical” simplified to “clinical corridor”
             "preferred": [
                 {"space": CLINICAL_CORRIDOR}
             ],
