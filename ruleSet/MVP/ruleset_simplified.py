@@ -338,7 +338,7 @@ ROOM_RULES = {
         "entryRules": [
             {
                 "kind": RULE_ENTRY_FROM_ONE_OF,
-                "spaces": ["sterilizationCorridor", CLINICAL_CORRIDOR],
+                "spaces": [CLINICAL_CORRIDOR],
                 "hard": True,
             },
             entry_not_from(CROSSOVER_HALLWAY, hard=True),
