@@ -194,6 +194,8 @@ def main():
     print("\nEnter desired count for each room type (0 for none).")
     print("NOTE: counts > 0 are currently treated as a single instance per type in this skeleton.\n")
 
+
+    # HILARIO HERE IS THE TODO FOR ADDING RULES FROM RULESET
     selected_rooms = []
     for rt in room_types:
         count = _prompt_nonnegative_int(f"{rt}: ")
