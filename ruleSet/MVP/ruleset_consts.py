@@ -20,7 +20,7 @@ STAFF_LOUNGE = "staffLounge"
 PATIENT_LOUNGE = "patientLounge"
 CROSSOVER_HALLWAY = "crossoverHallway"
 CLINICAL_CORRIDOR = "clinicalCorridor"
-DUAL_ENTRY_TREATMENT = "dualEntryTreatment"
+DUAL_ENTRY_TREATMENT = "dualEntryTreatment"     #combine int just treatment room? because internal factors don't matter
 SIDE_TOE_TREATMENT = "sideToeTreatment"
 TOE_TREATMENT = "toeTreatment"
 
