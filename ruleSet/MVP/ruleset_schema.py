@@ -1,44 +1,4 @@
-'''`
-All rules reference enumerations such as:
--these will be defined in a rulset_core
--room ids and other constants can be defined in ruleset consts
-
-ROOM_CATEGORY = { CLINICAL, PUBLIC, PRIVATE }
-LAYOUT_ENUM = { NARROW, THREE_LAYER_CAKE, H_LAYOUT }
-SHAPE_ENUM = { RECTANGULAR, RECTILINEAR }
-AXIS_RELATION_ENUM = {
-    PARALLEL,
-    PERPENDICULAR,
-    ALONG,
-    NONE
-}
-PLACEMENT_ENUM = {
-    FRONT,
-    CENTER,
-    BACK,
-    BETWEEN,
-    END_TO_END
-}
-ENTRY_RULE_ENUM = {
-    ENTRY_FROM,
-    ENTRY_NEAR,
-    ENTRY_NOT_FROM,
-    ENTRY_OPPOSITE_ENDS,
-    ENTRY_NOT_WITHIN_DISTANCE
-}
-COUNT_DRIVER_ENUM = {
-    TREATMENT_ROOMS,
-    BUILDING_SQFT,
-    OCCUPANCY,
-    FIXED
-}
-CIRCULATION_ROLE_ENUM = {
-    SPINE,
-    CONNECTOR,
-    DESTINATION
-}
-'''
-
+from core import *
 
 RoomSchema = {
 
@@ -46,7 +6,7 @@ RoomSchema = {
     # Identity & Classification
     # --------------------------------------------------
     "identity": {
-        "roomType": ROOM_ID,                 # enum
+        "roomType": SPACE_ID,                 # enum
         "category": ROOM_CATEGORY,           # CLINICAL | PUBLIC | PRIVATE
         "description": str | None,
     },

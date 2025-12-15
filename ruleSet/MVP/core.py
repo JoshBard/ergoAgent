@@ -11,7 +11,7 @@ class ROOM_CATEGORY(Enum):
     PUBLIC = auto()
     PRIVATE = auto()
 
-class ROOM_ID(Enum):
+class SPACE_ID(Enum):
     # Room identifiers, 
     # these are only rooms we have rules for or that were mentioned in rule set.
     # rooms that arent in rule set still need labels here
