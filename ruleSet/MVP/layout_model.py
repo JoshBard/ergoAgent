@@ -5,7 +5,7 @@
 # - Entrances are discrete integer positions on the rectangle perimeter
 # - Constraint details live in layout_constraints.py
 
-from ortools.linear_solver import pywraplp
+from ortools.linear_solver import pywraplp # pyright: ignore[reportMissingImports]
 
 from ruleset_simplified import ROOM_RULES
 from ruleset_consts import (
