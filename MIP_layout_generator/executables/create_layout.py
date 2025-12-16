@@ -7,8 +7,8 @@
 
 from ortools.linear_solver import pywraplp
 
-from ruleSet.MIP_layout_generator.architecture.constraints import *
-import ruleSet.MIP_layout_generator.architecture.room_rules as ROOM_RULES
+from ..architecture.constraints import *
+from ..architecture import room_rules as ROOM_RULES
 
 def _make_instance_id(room_type: str, idx: int) -> str:
     return f"{room_type}__{idx}"
