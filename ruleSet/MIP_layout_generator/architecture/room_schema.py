@@ -1,4 +1,4 @@
-from core import *
+from ruleSet.MIP_layout_generator.architecture.core import *
 
 RoomSchema = {
 

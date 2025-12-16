@@ -39,7 +39,7 @@ from ruleset_consts import (
     ADA_DOOR,
 )
 
-from ruleset_core import (
+from deprecated.ruleset_core import (
     # triggers (indexed)
     TRIGGER_ALWAYS,
     TRIGGER_USER_INPUT,
@@ -136,7 +136,6 @@ ROOM_RULES = {
             },
         },
         "entries": {
-            # [[5,1], [9,2]]
             "byTreatmentRooms": [
                 {"treatmentRoomsMin": 5, "treatmentRoomsMax": 8, "entries": 1},
                 {"treatmentRoomsMin": 9, "treatmentRoomsMax": 999, "entries": 2},

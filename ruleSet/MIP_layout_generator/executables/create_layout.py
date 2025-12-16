@@ -5,9 +5,9 @@
 # - Entrances are discrete integer positions on the rectangle perimeter
 # - Constraint details live in layout_constraints.py
 
-from ortools.linear_solver import pywraplp # pyright: ignore[reportMissingImports]
+from ortools.linear_solver import pywraplp
 
-from ruleset_simplified import ROOM_RULES
+from deprecated.ruleset_simplified import ROOM_RULES
 from ruleset_consts import (
     STERILIZATION,
     LAB,
@@ -30,7 +30,7 @@ from ruleset_consts import (
     TOE_TREATMENT,
 )
 
-from layout_constraints import (
+from ruleSet.MVP.architecture.constraints import (
     add_room_bounds_constraints,
     add_non_overlap_constraints,
     add_entry_bounds_constraints,
