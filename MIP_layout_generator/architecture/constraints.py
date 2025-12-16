@@ -6,7 +6,7 @@
 
 from ortools.linear_solver import pywraplp # pyright: ignore[reportMissingImports]
 from .core import *
-from . import room_rules as ROOM_RULES
+from .room_rules import ROOM_RULES
 
 def add_room_bounds_constraints(
     solver, rooms, x, y, w, h, building_width_in, building_height_in
@@ -480,23 +480,35 @@ def add_visibility_constraints_from_rules(solver, rooms, x, y, w, h):
 
 def add_room_min_constraints_from_rules(solver, rooms, w, h, num_treatment_rooms):
     """
-    HARD mins from ROOM_RULES[r]["geometry"]["dimensionModels"], but instead of "pick one model",
-    we:
+    HARD minimum bounds derived from rules.
 
-      1) Compute the minimum required width/length from the *applicable* option set
-         (matching TR-tier if available; else generic; else all).
-      2) Enforce w[r] >= min_w and h[r] >= min_h
-      3) Add an objective term that *rewards being larger* (equivalently: penalizes being smaller),
-         while still respecting the min constraints.
+    Supports:
+      A) geometry.dimensionModels (with optional treatment-room tiering)
+      B) Treatment-room-style geometry:
+         - geometry.widthRules
+         - geometry.depthRules
+         - entryVariants.*.depthRequirementInches
 
-    # TODO currently penalizing smaller rooms, this may need to change
-    # TODO add a trigger for rooms that need to be cognizant of treatments room etc. then check those specifically here instead of all
+    ROOM_RULES must be keyed by SPACE_ID enums.
     """
-    SIZE_REWARD = 1e-3  # small: increase if you want “bigger rooms” to matter more
+
+    def to_space_id(x):
+        if isinstance(x, SPACE_ID):
+            return x
+        if isinstance(x, str):
+            name = x.split("__", 1)[0]
+            if name.startswith("SPACE_ID."):
+                name = name.split(".", 1)[1]
+            return SPACE_ID[name]
+        raise TypeError(f"Cannot convert to SPACE_ID: {x}")
+
+    def _is_num(v):
+        return isinstance(v, (int, float))
 
     def _matches_tr(m):
         tr_min = m.get("treatmentRoomsMin")
         tr_max = m.get("treatmentRoomsMax")
+
         if tr_min is None and tr_max is None:
             return None  # generic
         if isinstance(tr_min, int) and isinstance(tr_max, int):
@@ -507,54 +519,97 @@ def add_room_min_constraints_from_rules(solver, rooms, w, h, num_treatment_rooms
             return num_treatment_rooms <= tr_max
         return False
 
-    obj = solver.Objective()
-    obj.SetMinimization()
-
     for r in rooms:
-        models = (ROOM_RULES.get(r, {}).get("geometry", {}) or {}).get("dimensionModels", []) or []
-        models = [m for m in models if isinstance(m, dict)]
-        if not models:
-            continue
+        # Resolve SPACE_ID
+        space_id = to_space_id(r)
+        spec = ROOM_RULES.get(space_id, {}) or {}
+        geom = spec.get("geometry") or {}
 
-        matching = [m for m in models if _matches_tr(m) is True]
-        generic = [m for m in models if _matches_tr(m) is None]
+        min_w = None
+        min_h = None
 
-        # Applicable set: prefer matching tier, else generic, else all
-        candidates = matching or generic or models
+        # ---------- A) dimensionModels ----------
+        models = geom.get("dimensionModels")
+        if isinstance(models, list):
+            models = [m for m in models if isinstance(m, dict)]
 
-        widths = [m.get("widthInches") for m in candidates if isinstance(m.get("widthInches"), int)]
-        lengths = [m.get("lengthInches") for m in candidates if isinstance(m.get("lengthInches"), int)]
+            if models:
+                matching = [m for m in models if _matches_tr(m) is True]
+                generic = [m for m in models if _matches_tr(m) is None]
+                candidates = matching or generic or models
 
-        min_w = min(widths) if widths else None
-        min_h = min(lengths) if lengths else None
+                widths = [m.get("widthInches") for m in candidates if _is_num(m.get("widthInches"))]
+                lengths = [m.get("lengthInches") for m in candidates if _is_num(m.get("lengthInches"))]
 
-        if min_w is not None:
-            solver.Add(w[r] >= min_w)
-            # reward being larger than min by rewarding w itself (constant min doesn't matter)
-            obj.SetCoefficient(w[r], obj.GetCoefficient(w[r]) - SIZE_REWARD)
+                if widths:
+                    min_w = min(widths)
+                if lengths:
+                    min_h = min(lengths)
 
-        if min_h is not None:
-            solver.Add(h[r] >= min_h)
-            obj.SetCoefficient(h[r], obj.GetCoefficient(h[r]) - SIZE_REWARD)
+        # ---------- B) Treatment-room-style geometry ----------
+        if min_w is None or min_h is None:
+            width_rules = geom.get("widthRules") or {}
+            if min_w is None:
+                v = width_rules.get("minInches")
+                if _is_num(v):
+                    min_w = v
 
+            depth_candidates = []
+            depth_rules = geom.get("depthRules") or {}
+
+            for k in ("dualEntryMinInches", "sideToeEntryMinInches", "toeEntryMinInches"):
+                v = depth_rules.get(k)
+                if _is_num(v):
+                    depth_candidates.append(v)
+
+            entry_variants = spec.get("entryVariants") or {}
+            if isinstance(entry_variants, dict):
+                for v in entry_variants.values():
+                    if isinstance(v, dict):
+                        dv = v.get("depthRequirementInches")
+                        if _is_num(dv):
+                            depth_candidates.append(dv)
+
+            if min_h is None and depth_candidates:
+                min_h = max(depth_candidates)  # strictest requirement
+
+        if _is_num(min_w):
+            solver.Add(w[r] >= int(min_w))
+        if _is_num(min_h):
+            solver.Add(h[r] >= int(min_h))
 
 
 def add_room_max_constraints_from_rules(solver, rooms, w, h, num_treatment_rooms):
     """
-    HARD max bounds from ROOM_RULES[r]["geometry"]["dimensionModels"].
+    HARD maximum bounds derived from rules.
 
-    Uses the SAME selection rule as min (choose largest relevant envelope),
-    then enforces:
-      w[r] <= chosen.widthInches
-      h[r] <= chosen.lengthInches
+    Supports:
+      A) geometry.dimensionModels
+      B) geometry.widthRules (maxInches)
 
-    This makes width/length effectively FIXED to the chosen envelope if both exist.
+    Note: your current schema does NOT define a max depth for treatment rooms,
+    so max height is only enforced when explicitly provided.
     """
+
+    def to_space_id(x):
+        if isinstance(x, SPACE_ID):
+            return x
+        if isinstance(x, str):
+            name = x.split("__", 1)[0]
+            if name.startswith("SPACE_ID."):
+                name = name.split(".", 1)[1]
+            return SPACE_ID[name]
+        raise TypeError(f"Cannot convert to SPACE_ID: {x}")
+
+    def _is_num(v):
+        return isinstance(v, (int, float))
+
     def _matches_tr(m):
         tr_min = m.get("treatmentRoomsMin")
         tr_max = m.get("treatmentRoomsMax")
+
         if tr_min is None and tr_max is None:
-            return None  # generic
+            return None
         if isinstance(tr_min, int) and isinstance(tr_max, int):
             return tr_min <= num_treatment_rooms <= tr_max
         if isinstance(tr_min, int) and tr_max is None:
@@ -563,35 +618,42 @@ def add_room_max_constraints_from_rules(solver, rooms, w, h, num_treatment_rooms
             return num_treatment_rooms <= tr_max
         return False
 
-    def _score(m):
-        wi = m.get("widthInches")
-        li = m.get("lengthInches")
-        wi = wi if isinstance(wi, int) else 0
-        li = li if isinstance(li, int) else 0
-        return (wi, li, wi * li)
-
     for r in rooms:
-        models = (ROOM_RULES.get(r, {}).get("geometry", {}) or {}).get("dimensionModels", []) or []
-        models = [m for m in models if isinstance(m, dict)]
-        if not models:
-            continue
+        space_id = to_space_id(r)
+        spec = ROOM_RULES.get(space_id, {}) or {}
+        geom = spec.get("geometry") or {}
 
-        matching = [m for m in models if _matches_tr(m) is True]
-        generic = [m for m in models if _matches_tr(m) is None]
+        max_w = None
+        max_h = None
 
-        if matching:
-            chosen = max(matching, key=_score)
-        elif generic:
-            chosen = max(generic, key=_score)
-        else:
-            chosen = max(models, key=_score)
+        # ---------- A) dimensionModels ----------
+        models = geom.get("dimensionModels")
+        if isinstance(models, list):
+            models = [m for m in models if isinstance(m, dict)]
 
-        wi = chosen.get("widthInches")
-        li = chosen.get("lengthInches")
+            if models:
+                matching = [m for m in models if _matches_tr(m) is True]
+                generic = [m for m in models if _matches_tr(m) is None]
+                candidates = matching or generic or models
 
-        if isinstance(wi, int):
-            solver.Add(w[r] <= wi)
-        if isinstance(li, int):
-            solver.Add(h[r] <= li)
+                widths = [m.get("widthInches") for m in candidates if _is_num(m.get("widthInches"))]
+                lengths = [m.get("lengthInches") for m in candidates if _is_num(m.get("lengthInches"))]
+
+                if widths:
+                    max_w = max(widths)
+                if lengths:
+                    max_h = max(lengths)
+
+        # ---------- B) widthRules ----------
+        if max_w is None:
+            width_rules = geom.get("widthRules") or {}
+            v = width_rules.get("maxInches")
+            if _is_num(v):
+                max_w = v
+
+        if _is_num(max_w):
+            solver.Add(w[r] <= int(max_w))
+        if _is_num(max_h):
+            solver.Add(h[r] <= int(max_h))
 
 # TODO add an ideal penalty for size of treatmeant rooms when we are ready to address those specifically
