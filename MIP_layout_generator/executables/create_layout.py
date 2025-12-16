@@ -8,7 +8,7 @@
 from ortools.linear_solver import pywraplp
 
 from ..architecture.constraints import *
-from ..architecture import room_rules as ROOM_RULES
+from ..architecture.room_rules import ROOM_RULES
 
 def _make_instance_id(room_type: str, idx: int) -> str:
     return f"{room_type}__{idx}"
@@ -101,19 +101,19 @@ def build_layout_model(
         )
 
     add_adjacency_constraints_from_rules(
-        solver, rooms, x, y, w, h, ROOM_RULES_BY_INSTANCE
+        solver, rooms, x, y, w, h
     )
     add_visibility_constraints_from_rules(
-        solver, rooms, x, y, w, h, ROOM_RULES_BY_INSTANCE
+        solver, rooms, x, y, w, h
     )
 
     # Min constraints include a soft "prefer larger above min" reward;
     # no separate ideal-size objective is used.
     add_room_min_constraints_from_rules(
-        solver, rooms, w, h, num_treatment_rooms, ROOM_RULES_BY_INSTANCE
+        solver, rooms, w, h, num_treatment_rooms
     )
     add_room_max_constraints_from_rules(
-        solver, rooms, w, h, num_treatment_rooms, ROOM_RULES_BY_INSTANCE
+        solver, rooms, w, h, num_treatment_rooms
     )
 
     # -------------------------------
@@ -166,12 +166,22 @@ def main():
             SPACE_ID.STAFF_ENTRY,
         }
     ]
+    
+    test_room_types = [
+        SPACE_ID.DOCTOR_OFFICE,
+        SPACE_ID.STERILIZATION,
+        SPACE_ID.PATIENT_RESTROOM,
+        SPACE_ID.PATIENT_LOUNGE,
+        SPACE_ID.CROSSOVER_HALLWAY,
+        SPACE_ID.CLINICAL_CORRIDOR,
+        SPACE_ID.TREATMENT_ROOM
+    ]
 
     print("\nEnter desired count for each room type (0 for none).\n")
 
     selected_rooms = []
     counts_by_type = {}
-    for rt in room_types:
+    for rt in test_room_types:
         count = _prompt_nonnegative_int(f"{rt}: ")
         counts_by_type[rt] = count
 
