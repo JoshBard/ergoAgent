@@ -37,15 +37,31 @@ from layout_constraints import (
     add_simple_entry_from_corridor_constraints,
     add_adjacency_constraints_from_rules,
     add_visibility_constraints_from_rules,
+    add_room_min_constraints_from_rules,
+    add_room_max_constraints_from_rules,
+    add_room_ideal_size_soft_objective,
 )
 
+TREATMENT_ROOM_TYPES = {DUAL_ENTRY_TREATMENT, SIDE_TOE_TREATMENT, TOE_TREATMENT}
 
-def build_layout_model(building_width_in, building_height_in, rooms, max_entrances_per_room=2):
+
+def _make_instance_id(room_type: str, idx: int) -> str:
+    return f"{room_type}__{idx}"
+
+
+def build_layout_model(
+    building_width_in,
+    building_height_in,
+    rooms,
+    num_treatment_rooms,
+    max_entrances_per_room=2,
+):
     """
     Build a mixed-integer model on a 1-inch discrete grid.
 
     - building_width_in, building_height_in: total shell size in inches
-    - rooms: list of room type identifiers to include (strings from ruleset_consts)
+    - rooms: list of room INSTANCE identifiers (e.g., "TOE_TREATMENT__0")
+    - num_treatment_rooms: scalar used by tiered rules (sterilization)
     - max_entrances_per_room: maximum number of door locations we allow per room in v1
 
     Returns:
@@ -58,22 +74,17 @@ def build_layout_model(building_width_in, building_height_in, rooms, max_entranc
     # -------------------------------
     # Variables
     # -------------------------------
-    # Rectangles: (x, y) bottom-left, (w, h) width & height, all in inches
     x = {}
     y = {}
     w = {}
     h = {}
 
     for r in rooms:
-        # For now, domain 0..building dimension; you can narrow later from ROOM_RULES[r]["dimensions"]
         x[r] = solver.IntVar(0, building_width_in, f"x_{r}")
         y[r] = solver.IntVar(0, building_height_in, f"y_{r}")
         w[r] = solver.IntVar(1, building_width_in, f"w_{r}")
         h[r] = solver.IntVar(1, building_height_in, f"h_{r}")
 
-    # Entrances:
-    # entrance_x[r, k], entrance_y[r, k] — grid coordinates for entrance k of room r
-    # entrance_active[r, k] — binary: whether this entrance is used
     entrance_x = {}
     entrance_y = {}
     entrance_active = {}
@@ -85,26 +96,33 @@ def build_layout_model(building_width_in, building_height_in, rooms, max_entranc
             entrance_active[(r, k)] = solver.BoolVar(f"door_active_{r}_{k}")
 
     # -------------------------------
+    # Rules lookup per instance
+    # -------------------------------
+    # Your constraints functions do ROOM_RULES.get(r, {}) where r is the room id.
+    # For multiple instances, make a rules dict keyed by instance id.
+    ROOM_RULES_BY_INSTANCE = {}
+    for r in rooms:
+        base_type = r.split("__", 1)[0]
+        ROOM_RULES_BY_INSTANCE[r] = ROOM_RULES.get(base_type, {})
+
+    # -------------------------------
     # Constraints
     # -------------------------------
-
-    # 1) Room must fit inside building shell
     add_room_bounds_constraints(
         solver, rooms, x, y, w, h, building_width_in, building_height_in
     )
 
-    # 2) Ensure entrances lie on the room’s perimeter if active
     add_entry_bounds_constraints(
         solver, rooms, x, y, w, h, entrance_x, entrance_y, entrance_active
     )
 
-    # 3) Non-overlap: rooms cannot overlap in interior (basic disjunctive constraints)
     add_non_overlap_constraints(solver, rooms, x, y, w, h)
 
-    # 4) Simple example: for rooms that require entry from the clinical corridor
-    #    We attach entrances to the corridor boundary. This is where ROOM_RULES entryRules
-    #    will eventually drive which rooms get which constraints.
-    if CLINICAL_CORRIDOR in rooms:
+    # Corridor-specific constraints:
+    # If you include multiple corridors later, you’ll want to pick a specific corridor instance.
+    corridor_instances = [r for r in rooms if r.split("__", 1)[0] == CLINICAL_CORRIDOR]
+    if corridor_instances:
+        corridor_room_id = corridor_instances[0]
         add_simple_entry_from_corridor_constraints(
             solver,
             rooms,
@@ -115,22 +133,28 @@ def build_layout_model(building_width_in, building_height_in, rooms, max_entranc
             entrance_x,
             entrance_y,
             entrance_active,
-            corridor_room_id=CLINICAL_CORRIDOR,
+            corridor_room_id=corridor_room_id,
         )
 
-    # 5) Adjacency constraints based on ROOM_RULES["adjacencyRules"]
-    add_adjacency_constraints_from_rules(solver, rooms, x, y, w, h, ROOM_RULES)
+    add_adjacency_constraints_from_rules(solver, rooms, x, y, w, h, ROOM_RULES_BY_INSTANCE)
+    add_visibility_constraints_from_rules(solver, rooms, x, y, w, h, ROOM_RULES_BY_INSTANCE)
 
-    # 6) Visibility constraints based on ROOM_RULES["visibilityRules"]
-    add_visibility_constraints_from_rules(solver, rooms, x, y, w, h, ROOM_RULES)
+    add_room_min_constraints_from_rules(
+        solver, rooms, w, h, num_treatment_rooms, ROOM_RULES_BY_INSTANCE
+    )
+    add_room_max_constraints_from_rules(
+        solver, rooms, w, h, num_treatment_rooms, ROOM_RULES_BY_INSTANCE
+    )
+
+    ideal_obj, _ = add_room_ideal_size_soft_objective(
+        solver, rooms, w, h, ROOM_RULES_BY_INSTANCE, weight=1.0
+    )
 
     # -------------------------------
-    # Objective (placeholder)
+    # Objective
     # -------------------------------
-    # Must be linear: no w[r] * h[r].
-    # For now, minimize total (w + h) to mildly prefer smaller rooms.
     total_size = solver.Sum([w[r] + h[r] for r in rooms])
-    solver.Minimize(total_size)
+    solver.Minimize(total_size + ideal_obj)
 
     vars_dict = {
         "x": x,
@@ -140,6 +164,7 @@ def build_layout_model(building_width_in, building_height_in, rooms, max_entranc
         "entrance_x": entrance_x,
         "entrance_y": entrance_y,
         "entrance_active": entrance_active,
+        "ROOM_RULES_BY_INSTANCE": ROOM_RULES_BY_INSTANCE,
     }
 
     return solver, vars_dict
@@ -168,7 +193,6 @@ def main():
         print("Building dimensions must be positive.")
         return
 
-    # List of room types we know about (from ruleset_consts)
     room_types = [
         STERILIZATION,
         LAB,
@@ -191,27 +215,32 @@ def main():
         TOE_TREATMENT,
     ]
 
-    print("\nEnter desired count for each room type (0 for none).")
-    print("NOTE: counts > 0 are currently treated as a single instance per type in this skeleton.\n")
+    print("\nEnter desired count for each room type (0 for none).\n")
 
-
-    # HILARIO HERE IS THE TODO FOR ADDING RULES FROM RULESET
     selected_rooms = []
+    counts_by_type = {}
     for rt in room_types:
         count = _prompt_nonnegative_int(f"{rt}: ")
-        if count > 0:
-            if rt not in ROOM_RULES:
-                print(f"  [warning] No ROOM_RULES entry for '{rt}', it will have only generic constraints.")
-            selected_rooms.append(rt)
+        counts_by_type[rt] = count
+
+        if count > 0 and rt not in ROOM_RULES:
+            print(f"  [warning] No ROOM_RULES entry for '{rt}', it will have only generic constraints.")
+
+        for i in range(count):
+            selected_rooms.append(_make_instance_id(rt, i))
 
     if not selected_rooms:
         print("No rooms selected (all counts were 0). Nothing to solve.")
         return
 
+    # Sum treatment room kinds
+    num_treatment_rooms = sum(counts_by_type.get(t, 0) for t in TREATMENT_ROOM_TYPES)
+
     solver, vars_dict = build_layout_model(
-        building_width_in,
-        building_height_in,
-        selected_rooms,
+        building_width_in=building_width_in,
+        building_height_in=building_height_in,
+        rooms=selected_rooms,
+        num_treatment_rooms=num_treatment_rooms,
     )
 
     status = solver.Solve()
@@ -222,12 +251,14 @@ def main():
             y_var = vars_dict["y"][r]
             w_var = vars_dict["w"][r]
             h_var = vars_dict["h"][r]
+            base = r.split("__", 1)[0]
             print(
-                f"{r}: (x={x_var.solution_value():.0f}, "
+                f"{r} [{base}]: (x={x_var.solution_value():.0f}, "
                 f"y={y_var.solution_value():.0f}, "
                 f"w={w_var.solution_value():.0f}, "
                 f"h={h_var.solution_value():.0f})"
             )
+        print(f"\nnum_treatment_rooms = {num_treatment_rooms}")
     else:
         print("No optimal solution found; status:", status)
 

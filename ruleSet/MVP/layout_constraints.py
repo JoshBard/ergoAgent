@@ -343,3 +343,231 @@ def add_visibility_constraints_from_rules(solver, rooms, x, y, w, h, ROOM_RULES)
                 pass
             else:
                 continue
+
+def add_room_min_constraints_from_rules(solver, rooms, w, h, num_treatment_rooms, ROOM_RULES):
+    """
+    Adds minimum width/height constraints based on ROOM_RULES[room]["dimensions"].
+
+    Minimal policy: if there are multiple possible minima, we enforce the smallest feasible minimum
+    (i.e., min width across options, min length across options). This avoids over-constraining v1.
+    """
+    def _safe_int(x):
+        return x if isinstance(x, (int, float)) else None
+
+    for r in rooms:
+        spec = ROOM_RULES.get(r, {})
+        dims = spec.get("dimensions")
+
+        # Skip unknown / TBD
+        if dims is None or dims == "TBD":
+            continue
+
+        min_w = None
+        min_h = None
+
+        # Case 1: direct minimum/max format
+        if isinstance(dims, dict) and isinstance(dims.get("minimum"), dict):
+            mw = _safe_int(dims["minimum"].get("widthInches"))
+            mh = _safe_int(dims["minimum"].get("lengthInches"))
+            if mw is not None:
+                min_w = mw if min_w is None else min(min_w, mw)
+            if mh is not None:
+                min_h = mh if min_h is None else min(min_h, mh)
+
+        # Case 2: variants list, currently just take the minimum
+        # TODO choose between variants, not just choose min
+        if isinstance(dims, dict) and isinstance(dims.get("variants"), list):
+            for v in dims["variants"]:
+                if not isinstance(v, dict):
+                    continue
+                mw = _safe_int(v.get("widthInches"))
+                mh = _safe_int(v.get("lengthInches"))
+                if mw is not None:
+                    min_w = mw if min_w is None else min(min_w, mw)
+                if mh is not None:
+                    min_h = mh if min_h is None else min(min_h, mh)
+
+        # Case 3: minimumByOperators list
+        # TODO pass in number of operators so it is not just outputting a min
+        if isinstance(dims, dict) and isinstance(dims.get("minimumByOperators"), list):
+            for row in dims["minimumByOperators"]:
+                if not isinstance(row, dict):
+                    continue
+                mw = _safe_int(row.get("widthInches"))
+                mh = _safe_int(row.get("lengthInches"))
+                if mw is not None:
+                    min_w = mw if min_w is None else min(min_w, mw)
+                if mh is not None:
+                    min_h = mh if min_h is None else min(min_h, mh)
+
+        # Case 4: STERILIZATION handler
+        # TODO does not handle longer axis for doors
+        if (r == "STERILIZATION"):
+            matched = None
+            for _, tier in dims.items():
+                tr_min = tier.get("treatmentRoomsMin")
+                tr_max = tier.get("treatmentRoomsMax")
+                if isinstance(tr_min, int) and isinstance(tr_max, int):
+                    if tr_min <= num_treatment_rooms <= tr_max:
+                        matched = tier
+                        break
+
+            if matched is not None:
+                mw = matched.get("widthInches")
+                ml = matched.get("lengthInches")
+                if isinstance(mw, int):
+                    solver.Add(w[r] >= mw)
+                if isinstance(ml, int):
+                    solver.Add(h[r] >= ml)
+            else:
+                # Safe fallback: enforce the smallest tier envelope
+                tier_widths = []
+                tier_lengths = []
+                for _, tier in dims.items():
+                    mw = tier.get("widthInches")
+                    ml = tier.get("lengthInches")
+                    if isinstance(mw, int):
+                        tier_widths.append(mw)
+                    if isinstance(ml, int):
+                        tier_lengths.append(ml)
+
+                if tier_widths:
+                    solver.Add(w[r] >= min(tier_widths))
+                if tier_lengths:
+                    solver.Add(h[r] >= min(tier_lengths))
+
+
+        # If we found anything, add constraints
+        if min_w is not None:
+            solver.Add(w[r] >= int(min_w))
+        if min_h is not None:
+            solver.Add(h[r] >= int(min_h))
+
+def add_room_max_constraints_from_rules(solver, rooms, w, h, num_treatment_rooms, ROOM_RULES):
+    """
+    Hard UPPER bounds (maximum sizes) for each room, based on ROOM_RULES[*]["dimensions"].
+    """
+    def _safe_num(x):
+        return x if isinstance(x, (int, float)) else None
+
+    for r in rooms:
+        spec = ROOM_RULES.get(r, {})
+        dims = spec.get("dimensions")
+        if dims is None or dims == "TBD":
+            continue
+
+        max_w = None
+        max_h = None
+
+        # Case 1: direct maximum
+        if isinstance(dims, dict) and isinstance(dims.get("maximum"), dict):
+            mw = _safe_num(dims["maximum"].get("widthInches"))
+            mh = _safe_num(dims["maximum"].get("lengthInches"))
+            if mw is not None:
+                max_w = mw if max_w is None else max(max_w, mw)
+            if mh is not None:
+                max_h = mh if max_h is None else max(max_h, mh)
+
+        # Case 2: variants list -> max envelope
+        # TODO just choosing max right
+        if isinstance(dims, dict) and isinstance(dims.get("variants"), list):
+            for v in dims["variants"]:
+                if not isinstance(v, dict):
+                    continue
+                mw = _safe_num(v.get("widthInches"))
+                mh = _safe_num(v.get("lengthInches"))
+                if mw is not None:
+                    max_w = mw if max_w is None else max(max_w, mw)
+                if mh is not None:
+                    max_h = mh if max_h is None else max(max_h, mh)
+
+        # Case 4: STERILIZATION tier selection
+        # TODO handle doorways
+        # TODO can simplify because max and min are the same size
+        if r == "STERILIZATION" and isinstance(dims, dict):
+            matched = None
+            for _, tier in dims.items():
+                if not isinstance(tier, dict):
+                    continue
+                tr_min = tier.get("treatmentRoomsMin")
+                tr_max = tier.get("treatmentRoomsMax")
+                if isinstance(tr_min, int) and isinstance(tr_max, int) and tr_min <= num_treatment_rooms <= tr_max:
+                    matched = tier
+                    break
+
+            if matched is not None:
+                mw = matched.get("widthInches")
+                ml = matched.get("lengthInches")
+                if isinstance(mw, int):
+                    max_w = mw if max_w is None else min(max_w, mw)
+                if isinstance(ml, int):
+                    max_h = ml if max_h is None else min(max_h, ml)
+            else:
+                tier_widths = []
+                tier_lengths = []
+                for _, tier in dims.items():
+                    if not isinstance(tier, dict):
+                        continue
+                    mw = tier.get("widthInches")
+                    ml = tier.get("lengthInches")
+                    if isinstance(mw, int):
+                        tier_widths.append(mw)
+                    if isinstance(ml, int):
+                        tier_lengths.append(ml)
+                # fallback: max envelope across tiers
+                if tier_widths:
+                    max_w = max(tier_widths) if max_w is None else min(max_w, max(tier_widths))
+                if tier_lengths:
+                    max_h = max(tier_lengths) if max_h is None else min(max_h, max(tier_lengths))
+
+        if max_w is not None:
+            solver.Add(w[r] <= int(max_w))
+        if max_h is not None:
+            solver.Add(h[r] <= int(max_h))
+
+
+def add_room_ideal_size_soft_objective(solver, rooms, w, h, ROOM_RULES, weight=1.0):
+    """
+    Soft preference toward ideal sizes.
+
+    TODO uses a linear penalty, may need to change
+    """
+    def _safe_num(x):
+        return x if isinstance(x, (int, float)) else None
+
+    penalties = []
+    penalty_vars = []
+
+    for r in rooms:
+        spec = ROOM_RULES.get(r, {})
+        dims = spec.get("dimensions")
+        if not (isinstance(dims, dict) and isinstance(dims.get("ideal"), dict)):
+            continue
+
+        ideal_w = _safe_num(dims["ideal"].get("widthInches"))
+        ideal_h = _safe_num(dims["ideal"].get("lengthInches"))
+        if ideal_w is None and ideal_h is None:
+            continue
+
+        # Linearize abs(w - ideal_w)
+        if ideal_w is not None:
+            dw_pos = solver.NumVar(0, solver.infinity(), f"{r}_ideal_w_pos")
+            dw_neg = solver.NumVar(0, solver.infinity(), f"{r}_ideal_w_neg")
+            solver.Add(w[r] - ideal_w == dw_pos - dw_neg)
+            penalties.append(dw_pos)
+            penalties.append(dw_neg)
+            penalty_vars.extend([dw_pos, dw_neg])
+
+        # Linearize abs(h - ideal_h)
+        if ideal_h is not None:
+            dh_pos = solver.NumVar(0, solver.infinity(), f"{r}_ideal_h_pos")
+            dh_neg = solver.NumVar(0, solver.infinity(), f"{r}_ideal_h_neg")
+            solver.Add(h[r] - ideal_h == dh_pos - dh_neg)
+            penalties.append(dh_pos)
+            penalties.append(dh_neg)
+            penalty_vars.extend([dh_pos, dh_neg])
+
+    if not penalties:
+        return 0, []
+
+    return weight * solver.Sum(penalties), penalty_vars

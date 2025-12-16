@@ -71,6 +71,18 @@ from ruleset_core import (
     not_within_distance_of,
 )
 
+"""
+Consistency note (minimal change policy):
+
+- All rule objects should use:
+  - "kind": RULE_*
+  - "space": <single reference> OR "spaces": [<refs>]
+  - "hard": bool
+
+This file already largely follows that pattern. The only normalization applied here is:
+- Rename "target" -> "space" for internal-connection rules.
+(Helper constructors like avoid_visibility_from/require_visibility_from should also return {"kind", "space", "hard"}.)
+"""
 
 ROOM_RULES = {
     # ---------------------------------------------------------
@@ -150,7 +162,7 @@ ROOM_RULES = {
         "adjacencyRules": [
             {
                 "kind": RULE_ENTRY_INTERNAL_CONNECTION,  # semantic: conditional adjacency to analogLab
-                "target": "analogLab",
+                "space": "analogLab",  # was "target"
                 "condition": "analogLabExists",
                 "hard": False,
             },
@@ -476,7 +488,7 @@ ROOM_RULES = {
         "adjacencyRules": [
             {
                 "kind": RULE_ENTRY_INTERNAL_CONNECTION,
-                "target": DOCTOR_PRIVATE_RESTROOM,
+                "space": DOCTOR_PRIVATE_RESTROOM,  # was "target"
                 "hard": False,
             },
             {
@@ -1013,3 +1025,4 @@ ROOM_RULES = {
         "scalability": "none",
     },
 }
+ 
