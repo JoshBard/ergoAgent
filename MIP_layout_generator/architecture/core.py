@@ -101,6 +101,7 @@ class PLACEMENT_ENUM(Enum):
     BEHIND_RECEPTION = auto()               #these should be replaced by a behind flag and an associated anchor reference or driver flag.
     BEHIND_OR_ADJACENT_TO_CHECKOUT = auto() #^
     BUSINESS_ANCHOR = auto()                #^
+    ENTRY = auto()
 
 
 
