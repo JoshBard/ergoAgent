@@ -17,8 +17,8 @@ NOTE:
 - Use SPACE_GROUP where possible to avoid adjacency explosion
 """
 
-from ruleSet.MIP_layout_generator.architecture.core import *
-from room_schema import RoomSchema
+from .core import *
+from .room_schema import RoomSchema
 
 
 #Sterilization

@@ -5,8 +5,8 @@
 
 
 from ortools.linear_solver import pywraplp # pyright: ignore[reportMissingImports]
-from core import *
-import room_rules as ROOM_RULES
+from .core import *
+from . import room_rules as ROOM_RULES
 
 def add_room_bounds_constraints(
     solver, rooms, x, y, w, h, building_width_in, building_height_in
