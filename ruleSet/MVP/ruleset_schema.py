@@ -2,18 +2,18 @@ from core import *
 
 RoomSchema = {
 
-    # --------------------------------------------------
+    
     # Identity & Classification
-    # --------------------------------------------------
+    
     "identity": {
         "roomType": SPACE_ID,                 # enum
         "category": ROOM_CATEGORY,           # CLINICAL | PUBLIC | PRIVATE
         "description": str | None,
     },
 
-    # --------------------------------------------------
+    
     # Existence & Counting
-    # --------------------------------------------------
+    
     "existence": {
         "trigger": TRIGGER_ENUM,              # always | user_input | derived
         "countRules": [
@@ -26,9 +26,9 @@ RoomSchema = {
         ]
     },
 
-    # --------------------------------------------------
+    
     # Geometry Envelope (Room Outline Only)
-    # --------------------------------------------------
+    
     "geometry": {
         "shape": SHAPE_ENUM,                  # rectangular | rectilinear
         "dimensionModels": [
@@ -46,9 +46,9 @@ RoomSchema = {
         "fallbackStrategy": GEOMETRY_FALLBACK_ENUM
     },
 
-    # --------------------------------------------------
+    
     # Layout-Specific Orientation Rules
-    # --------------------------------------------------
+    
     "orientation": {
         LAYOUT_ENUM: {
             "allowed": bool,
@@ -58,9 +58,9 @@ RoomSchema = {
         }
     },
 
-    # --------------------------------------------------
+    
     # Access & Entries
-    # --------------------------------------------------
+    
     "access": {
         "entryCountRules": [
             {
@@ -84,9 +84,9 @@ RoomSchema = {
         }
     },
 
-    # --------------------------------------------------
+    
     # Adjacency & Proximity
-    # --------------------------------------------------
+    
     "adjacency": {
         "direct": [
             {
@@ -110,9 +110,9 @@ RoomSchema = {
         ]
     },
 
-    # --------------------------------------------------
+    
     # Visibility / Sightlines (Room-to-Room Only)
-    # --------------------------------------------------
+    
     "visibility": {
         "mustBeHiddenFrom": [
             {
@@ -128,18 +128,18 @@ RoomSchema = {
         ]
     },
 
-    # --------------------------------------------------
+    
     # Circulation Role (Graph Semantics)
-    # --------------------------------------------------
+    
     "circulation": {
         "role": CIRCULATION_ROLE_ENUM,         # spine | connector | destination
         "mustConnect": [SPACE_ID],
         "mustNotTerminateInto": [SPACE_ID],
     },
 
-    # --------------------------------------------------
+    
     # Optimization Hints (Soft Goals)
-    # --------------------------------------------------
+    
     "optimization": {
         "centerBias": {
             "reference": SPACE_GROUP | None,

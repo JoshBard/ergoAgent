@@ -84,6 +84,7 @@ class PLACEMENT_ENUM(Enum):
     CENTER = auto()
     BACK = auto()
     BETWEEN = auto()
+    ALONG = auto()
     END_TO_END = auto()
 
 
@@ -111,6 +112,7 @@ class CONDITION_ENUM(Enum):
     IF_ABSENT = auto()
     IF_LAYOUT = auto()
     IF_THRESHOLD = auto()
+    PER_N_UNITS = auto()
     NONE = auto()
 
 
