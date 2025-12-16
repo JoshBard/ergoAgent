@@ -30,7 +30,7 @@ RoomSchema = {
     # Geometry Envelope (Room Outline Only)
     
     "geometry": {
-        "shape": SHAPE_ENUM,                  # rectangular | rectilinear
+        "shape": SHAPE_ENUM,                  # rectangular | rectilinear | irregular
         "dimensionModels": [
             {
                 "label": str,

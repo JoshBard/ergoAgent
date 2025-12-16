@@ -4,7 +4,7 @@
 # All coordinates and lengths are discrete inches.
 
 
-from ortools.linear_solver import pywraplp
+from ortools.linear_solver import pywraplp # pyright: ignore[reportMissingImports]
 
 from ruleset_core import (
     RULE_ADJACENT,
