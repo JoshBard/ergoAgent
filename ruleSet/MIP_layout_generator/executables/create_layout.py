@@ -7,43 +7,8 @@
 
 from ortools.linear_solver import pywraplp
 
-from deprecated.ruleset_simplified import ROOM_RULES
-from ruleset_consts import (
-    STERILIZATION,
-    LAB,
-    CONSULT,
-    PATIENT_RESTROOM,
-    TREATMENT_COORDINATION,
-    MOBILE_TECH,
-    DOCTORS_ON_DECK,
-    DOCTOR_OFFICE,
-    DOCTOR_PRIVATE_RESTROOM,
-    OFFICE_MANAGER,
-    BUSINESS_OFFICE,
-    ALT_BUSINESS_OFFICE,
-    STAFF_LOUNGE,
-    PATIENT_LOUNGE,
-    CROSSOVER_HALLWAY,
-    CLINICAL_CORRIDOR,
-    DUAL_ENTRY_TREATMENT,
-    SIDE_TOE_TREATMENT,
-    TOE_TREATMENT,
-)
-
-from ruleSet.MVP.architecture.constraints import (
-    add_room_bounds_constraints,
-    add_non_overlap_constraints,
-    add_entry_bounds_constraints,
-    add_simple_entry_from_corridor_constraints,
-    add_adjacency_constraints_from_rules,
-    add_visibility_constraints_from_rules,
-    add_room_min_constraints_from_rules,
-    add_room_max_constraints_from_rules,
-    add_room_ideal_size_soft_objective,
-)
-
-TREATMENT_ROOM_TYPES = {DUAL_ENTRY_TREATMENT, SIDE_TOE_TREATMENT, TOE_TREATMENT}
-
+from ruleSet.MIP_layout_generator.architecture.constraints import *
+import ruleSet.MIP_layout_generator.architecture.room_rules as ROOM_RULES
 
 def _make_instance_id(room_type: str, idx: int) -> str:
     return f"{room_type}__{idx}"
@@ -60,7 +25,7 @@ def build_layout_model(
     Build a mixed-integer model on a 1-inch discrete grid.
 
     - building_width_in, building_height_in: total shell size in inches
-    - rooms: list of room INSTANCE identifiers (e.g., "TOE_TREATMENT__0")
+    - rooms: list of room INSTANCE identifiers (e.g., "TREATMENT_ROOM__0")
     - num_treatment_rooms: scalar used by tiered rules (sterilization)
     - max_entrances_per_room: maximum number of door locations we allow per room in v1
 
@@ -98,8 +63,8 @@ def build_layout_model(
     # -------------------------------
     # Rules lookup per instance
     # -------------------------------
-    # Your constraints functions do ROOM_RULES.get(r, {}) where r is the room id.
-    # For multiple instances, make a rules dict keyed by instance id.
+    # Constraint functions do ROOM_RULES.get(r, {}) where r is the room INSTANCE id.
+    # For multiple instances, build a rules dict keyed by instance id.
     ROOM_RULES_BY_INSTANCE = {}
     for r in rooms:
         base_type = r.split("__", 1)[0]
@@ -118,9 +83,8 @@ def build_layout_model(
 
     add_non_overlap_constraints(solver, rooms, x, y, w, h)
 
-    # Corridor-specific constraints:
-    # If you include multiple corridors later, you’ll want to pick a specific corridor instance.
-    corridor_instances = [r for r in rooms if r.split("__", 1)[0] == CLINICAL_CORRIDOR]
+    # Corridor-specific constraints (pick the first corridor instance)
+    corridor_instances = [r for r in rooms if r.split("__", 1)[0] == SPACE_ID.CLINICAL_CORRIDOR]
     if corridor_instances:
         corridor_room_id = corridor_instances[0]
         add_simple_entry_from_corridor_constraints(
@@ -136,9 +100,15 @@ def build_layout_model(
             corridor_room_id=corridor_room_id,
         )
 
-    add_adjacency_constraints_from_rules(solver, rooms, x, y, w, h, ROOM_RULES_BY_INSTANCE)
-    add_visibility_constraints_from_rules(solver, rooms, x, y, w, h, ROOM_RULES_BY_INSTANCE)
+    add_adjacency_constraints_from_rules(
+        solver, rooms, x, y, w, h, ROOM_RULES_BY_INSTANCE
+    )
+    add_visibility_constraints_from_rules(
+        solver, rooms, x, y, w, h, ROOM_RULES_BY_INSTANCE
+    )
 
+    # Min constraints include a soft "prefer larger above min" reward;
+    # no separate ideal-size objective is used.
     add_room_min_constraints_from_rules(
         solver, rooms, w, h, num_treatment_rooms, ROOM_RULES_BY_INSTANCE
     )
@@ -146,15 +116,11 @@ def build_layout_model(
         solver, rooms, w, h, num_treatment_rooms, ROOM_RULES_BY_INSTANCE
     )
 
-    ideal_obj, _ = add_room_ideal_size_soft_objective(
-        solver, rooms, w, h, ROOM_RULES_BY_INSTANCE, weight=1.0
-    )
-
     # -------------------------------
     # Objective
     # -------------------------------
     total_size = solver.Sum([w[r] + h[r] for r in rooms])
-    solver.Minimize(total_size + ideal_obj)
+    solver.Minimize(total_size)
 
     vars_dict = {
         "x": x,
@@ -194,25 +160,11 @@ def main():
         return
 
     room_types = [
-        STERILIZATION,
-        LAB,
-        CONSULT,
-        PATIENT_RESTROOM,
-        TREATMENT_COORDINATION,
-        MOBILE_TECH,
-        DOCTORS_ON_DECK,
-        DOCTOR_OFFICE,
-        DOCTOR_PRIVATE_RESTROOM,
-        OFFICE_MANAGER,
-        BUSINESS_OFFICE,
-        ALT_BUSINESS_OFFICE,
-        STAFF_LOUNGE,
-        PATIENT_LOUNGE,
-        CROSSOVER_HALLWAY,
-        CLINICAL_CORRIDOR,
-        DUAL_ENTRY_TREATMENT,
-        SIDE_TOE_TREATMENT,
-        TOE_TREATMENT,
+        r for r in SPACE_ID
+        if r not in {
+            SPACE_ID.MECHANICAL,
+            SPACE_ID.STAFF_ENTRY,
+        }
     ]
 
     print("\nEnter desired count for each room type (0 for none).\n")
@@ -233,8 +185,8 @@ def main():
         print("No rooms selected (all counts were 0). Nothing to solve.")
         return
 
-    # Sum treatment room kinds
-    num_treatment_rooms = sum(counts_by_type.get(t, 0) for t in TREATMENT_ROOM_TYPES)
+    # Single treatment room type
+    num_treatment_rooms = counts_by_type.get(SPACE_ID.TREATMENT_ROOM, 0)
 
     solver, vars_dict = build_layout_model(
         building_width_in=building_width_in,
