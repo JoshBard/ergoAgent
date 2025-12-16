@@ -39,6 +39,7 @@ class SPACE_ID(Enum):
     STAFF_ENTRY = auto()
     STAFF_RESTROOMS = auto()
     DOCTOR_NOOK = auto()
+    VESTIBULE = auto()
 
 
 #Layout and Geometry Enums:
@@ -130,6 +131,7 @@ class CONDITION_ENUM(Enum):
     PER_N_UNITS = auto()
     IF_GREATER_THAN = auto()
     NONE = auto()
+    ALWAYS = auto()
 
 class ROUNDING_ENUM(Enum):
     # rounding types
@@ -174,6 +176,7 @@ class CIRCULATION_ROLE_ENUM(Enum):
     SPINE = auto()         # main corridor / backbone
     CONNECTOR = auto()     # joins spines or zones
     DESTINATION = auto()  # rooms people go to
+    PRIMARY_INTAKE = auto()
 
 
 # Visibility Semantics
@@ -185,6 +188,8 @@ class VISIBILITY_RULE_ENUM(Enum):
     MUST_BE_HIDDEN_FROM = auto()
     MUST_BE_VISIBLE_FROM = auto()
 
+class ACOUSTIC_ENUM(Enum):
+    HIGH = auto() #used to indicate rooms that are loud
 
 # Optimization Semantics (Soft Objectives)
 

@@ -1808,7 +1808,7 @@ OFFICE_MANAGER_RULES = {
         "direct": [],  # None required
         "preferredProximity": [
             {
-                "target": SPACE_ID.RECEPTION,
+                "target": SPACE_ID.CHECK_IN,
                 "maxDistanceInches": None,  # TODO: exact preferred distance
                 "optimizationWeight": 1.0,
             },
@@ -1950,7 +1950,7 @@ BUSINESS_OFFICE_RULES = {
         "entryConstraints": [
             {
                 "kind": ENTRY_RULE_ENUM.ENTRY_NEAR,
-                "target": SPACE_ID.RECEPTION,
+                "target": SPACE_ID.CHECK_IN,
                 "distanceMaxInches": 120,  # ~10 ft
                 "hard": True,
             },
@@ -1976,7 +1976,7 @@ BUSINESS_OFFICE_RULES = {
     "adjacency": {
         "direct": [
             {
-                "target": SPACE_ID.RECEPTION,
+                "target": SPACE_ID.CHECK_IN,
                 "condition": CONDITION_ENUM.NONE,
                 "hard": False,
             },
@@ -2019,7 +2019,7 @@ BUSINESS_OFFICE_RULES = {
         ],
         "mustBeVisibleFrom": [
             {
-                "target": SPACE_ID.RECEPTION,
+                "target": SPACE_ID.CHECK_IN,
                 "hard": False,
             },
         ],
@@ -2027,7 +2027,7 @@ BUSINESS_OFFICE_RULES = {
 
     "circulation": {
         "role": CIRCULATION_ROLE_ENUM.DESTINATION,
-        "mustConnect": [SPACE_ID.RECEPTION, SPACE_ID.CHECK_IN],
+        "mustConnect": [SPACE_ID.CHECK_IN, SPACE_ID.CHECK_IN],
         "mustNotTerminateInto": [SPACE_GROUP.CLINICAL],
     },
 
@@ -2185,7 +2185,7 @@ ALT_BUSINESS_OFFICE_RULES = {
     "adjacency": {
         "direct": [
             {
-                "target": SPACE_ID.RECEPTION,
+                "target": SPACE_ID.CHECK_IN,
                 "hard": False,
             },
             {
@@ -2222,7 +2222,7 @@ ALT_BUSINESS_OFFICE_RULES = {
     "visibility": {
         "mustBeVisibleFrom": [
             {
-                "target": SPACE_ID.RECEPTION,
+                "target": SPACE_ID.CHECK_IN,
                 "hard": False,
             },
         ],
@@ -2389,7 +2389,7 @@ STAFF_LOUNGE_RULES = {
                 "hard": True,
             },
             {
-                "target": SPACE_ID.RECEPTION,
+                "target": SPACE_ID.CHECK_IN,
                 "hard": True,
             },
         ],
@@ -2519,7 +2519,7 @@ PATIENT_LOUNGE_RULES = {
         "entryConstraints": [
             {
                 "kind": ENTRY_RULE_ENUM.ENTRY_FROM,
-                "target": SPACE_ID.RECEPTION,
+                "target": SPACE_ID.CHECK_IN,
                 "hard": True,
             },
             {
@@ -2537,7 +2537,7 @@ PATIENT_LOUNGE_RULES = {
     "adjacency": {
         "direct": [
             {
-                "target": SPACE_ID.RECEPTION,
+                "target": SPACE_ID.CHECK_IN,
                 "condition": CONDITION_ENUM.NONE,
                 "hard": True,
             }
@@ -2572,7 +2572,7 @@ PATIENT_LOUNGE_RULES = {
     "visibility": {
         "mustBeVisibleFrom": [
             {
-                "target": SPACE_ID.RECEPTION,
+                "target": SPACE_ID.CHECK_IN,
                 "hard": True,
             }
         ],
@@ -2587,7 +2587,7 @@ PATIENT_LOUNGE_RULES = {
     "circulation": {
         "role": CIRCULATION_ROLE_ENUM.DESTINATION,
         "mustConnect": [
-            SPACE_ID.RECEPTION,
+            SPACE_ID.CHECK_IN,
             SPACE_GROUP.PUBLIC,
         ],
         "mustNotTerminateInto": [
@@ -2701,7 +2701,7 @@ CROSSOVER_HALLWAY_RULES = {
                 "hard": True,
             },
             {
-                "target": SPACE_ID.RECEPTION,
+                "target": SPACE_ID.CHECK_IN,
                 "hard": True,
             },
             {
@@ -2912,7 +2912,7 @@ CLINICAL_CORRIDOR_RULES = {
                 "hard": True,
             },
             {
-                "target": SPACE_ID.RECEPTION,
+                "target": SPACE_ID.CHECK_IN,
                 "hard": True,
             },
             {
@@ -3131,13 +3131,5 @@ TREATMENT_ROOM_RULES = {
         "acousticControls": {
             "avoidDirectOpposition": True,
         },
-    },
-
-    "scalability": {
-        "scalesWith": COUNT_DRIVER_ENUM.TREATMENT_ROOMS,
-        "variantSelectionStrategy": (
-            "prefer_dual_entry_when_corridor_perpendicular; "
-            "fallback_to_side_or_toe_entry_when_parallel"
-        ),
     },
 }
