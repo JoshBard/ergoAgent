@@ -33,7 +33,6 @@ class SPACE_ID(Enum):
     CROSSOVER_HALLWAY = auto()
     CLINICAL_CORRIDOR = auto()
     TREATMENT_ROOM = auto()
-    RECEPTION = auto()
     CHECK_IN = auto()
     CHECK_OUT = auto()
     MECHANICAL = auto()
@@ -58,6 +57,14 @@ class SHAPE_ENUM(Enum):
     RECTILINEAR = auto()
     IRREGULAR = auto()
 
+class CLOCK_FACE_ENUM(Enum):
+    #clock face references for treatment room layout
+
+    THREE_OCLOCK = auto()
+    SIX_OCLOCK = auto()
+    NINE_OCLOCK = auto()
+    TWELVE_OCLOCK = auto()
+
 class GEOMETRY_FALLBACK_ENUM(Enum):
     # backup strategy options if initial generation can't be done based on inputs
 
@@ -65,6 +72,9 @@ class GEOMETRY_FALLBACK_ENUM(Enum):
     MINIMUM = auto()         # smallest valid envelope
     NEAREST_MATCH = auto()   # closest dimension model
     USER_OVERRIDE = auto()   # defer to external input
+    AREA_FIRST = auto()      # used for alt B.O.
+    IDEAL_THEN_MIN = auto()  # used for treatment rooms
+
 
 
 #Oritentation and Placement Enums:
@@ -86,6 +96,11 @@ class PLACEMENT_ENUM(Enum):
     BETWEEN = auto()
     ALONG = auto()
     END_TO_END = auto()
+    END = auto() #same as back?
+    BEHIND_RECEPTION = auto()               #these should be replaced by a behind flag and an associated anchor reference or driver flag.
+    BEHIND_OR_ADJACENT_TO_CHECKOUT = auto() #^
+    BUSINESS_ANCHOR = auto()                #^
+
 
 
 #Existence and Counting Enums:
@@ -113,8 +128,13 @@ class CONDITION_ENUM(Enum):
     IF_LAYOUT = auto()
     IF_THRESHOLD = auto()
     PER_N_UNITS = auto()
+    IF_GREATER_THAN = auto()
     NONE = auto()
 
+class ROUNDING_ENUM(Enum):
+    # rounding types
+
+    CEIL = auto()
 
 #Access and Entry Enums:
 
@@ -126,6 +146,8 @@ class ENTRY_RULE_ENUM(Enum):
     ENTRY_NOT_FROM = auto()          # must not enter from target
     ENTRY_OPPOSITE_ENDS = auto()     # entries at opposite ends
     ENTRY_NOT_WITHIN_DISTANCE = auto()
+    SECONDARY_ENTRY_ALLOWED_TO = auto()
+
 
 
 #Adjacency and Graph Semantics:
@@ -140,6 +162,8 @@ class SPACE_GROUP(Enum):
     PRIVATE = auto()
     SUPPORT = auto()
     CORRIDORS = auto()
+    FRONT_OF_HOUSE = auto()
+    STAFF = auto()
 
 
 #Circulation graph role
