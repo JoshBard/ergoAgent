@@ -103,6 +103,7 @@ class GEOMETRY_FALLBACK_ENUM(Enum):
     USER_OVERRIDE = auto()   # defer to external input
     AREA_FIRST = auto()      # used for alt B.O.
     IDEAL_THEN_MIN = auto()  # used for treatment rooms
+    EXPAND_LONG_AXIS = auto()
 
 
 
