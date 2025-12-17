@@ -36,8 +36,8 @@ class SPACE_ID(Enum):
     CHECK_IN = auto()
     CHECK_OUT = auto()
     MECHANICAL = auto()
-    STAFF_ENTRY = auto()
-    STAFF_RESTROOMS = auto()
+    STAFF_ENTRY = auto()    # TODO This might be an input like the layout footprint, not a space type?
+    STAFF_RESTROOM = auto()
     DOCTOR_NOOK = auto()
     VESTIBULE = auto()
 
