@@ -6148,6 +6148,2784 @@ OPEN_BAY_RULES = {
     },
 }
 
+# Brushing Station
+
+BRUSHING_STATION_RULES = {
+
+    "identity": {
+        "roomType": SPACE_ID.BRUSHING_STATION,
+        "category": ROOM_CATEGORY.PUBLIC,
+        "description": (
+            "Shared brushing and handwashing station for patients, typically "
+            "used before or after treatment. Often semi-open, highly visible, "
+            "and located near waiting or hygiene areas."
+        ),
+    },
+
+    "existence": {
+        "trigger": TRIGGER_ENUM.DERIVED,
+        "countRules": [
+            {
+                # One brushing station cluster per clinic is typical
+                "driver": COUNT_DRIVER_ENUM.FIXED,
+                "min": 1,
+                "max": 1,
+                "condition": CONDITION_ENUM.NONE,
+            },
+            {
+                # Scale with patient volume / occupancy
+                "driver": COUNT_DRIVER_ENUM.OCCUPANCY,
+                "min": None,
+                "max": None,
+                "condition": CONDITION_ENUM.IF_THRESHOLD,
+            },
+        ],
+    },
+
+    "geometry": {
+        "shape": SHAPE_ENUM.RECTILINEAR,
+        "dimensionModels": [
+            {
+                "label": "compact_brushing_station",
+                "treatmentRoomsMin": None,
+                "treatmentRoomsMax": 6,
+                "widthInches": 96,   # 8'-0"
+                "lengthInches": 72,  # 6'-0"
+                "areaSqIn": None,
+                "longAxisVariable": False,
+                "longAxisIncrementPerDoorInches": None,
+            },
+            {
+                "label": "expanded_brushing_station",
+                "treatmentRoomsMin": 7,
+                "treatmentRoomsMax": None,
+                "widthInches": 144,  # 12'-0"
+                "lengthInches": 96,  # 8'-0"
+                "areaSqIn": None,
+                "longAxisVariable": True,
+                "longAxisIncrementPerDoorInches": 24,
+            },
+        ],
+        "fallbackStrategy": GEOMETRY_FALLBACK_ENUM.MINIMUM,
+    },
+
+    "orientation": {
+        LAYOUT_ENUM.NARROW: {
+            "allowed": True,
+            "longAxisRelation": AXIS_RELATION_ENUM.PARALLEL,
+            "placementHint": PLACEMENT_ENUM.CENTER,
+            "connectsCorridors": False,
+        },
+        LAYOUT_ENUM.THREE_LAYER_CAKE: {
+            "allowed": True,
+            "longAxisRelation": AXIS_RELATION_ENUM.NONE,
+            "placementHint": PLACEMENT_ENUM.CENTER,
+            "connectsCorridors": False,
+        },
+        LAYOUT_ENUM.H_LAYOUT: {
+            "allowed": True,
+            "longAxisRelation": AXIS_RELATION_ENUM.NONE,
+            "placementHint": PLACEMENT_ENUM.CENTER,
+            "connectsCorridors": False,
+        },
+    },
+
+    "access": {
+        "entryCountRules": [
+            {
+                "treatmentRoomsMin": None,
+                "treatmentRoomsMax": None,
+                "minEntries": 1,
+                "maxEntries": 2,
+            }
+        ],
+        "entryConstraints": [
+            {
+                # Should be accessible from public circulation
+                "kind": ENTRY_RULE_ENUM.ENTRY_FROM,
+                "target": SPACE_GROUP.PUBLIC,
+                "distanceMaxInches": None,
+                "hard": True,
+            },
+        ],
+        "ada": {
+            "minClearWidthInches": 36,
+            "requiredEntries": 1,
+        },
+    },
+
+    "adjacency": {
+        "direct": [
+            {
+                # Often directly adjacent to waiting or hygiene areas
+                "target": SPACE_ID.PATIENT_LOUNGE,
+                "condition": CONDITION_ENUM.NONE,
+                "hard": False,
+            },
+        ],
+        "preferredProximity": [
+            {
+                "target": SPACE_GROUP.CLINICAL,
+                "maxDistanceInches": 240,  # ~20'
+                "optimizationWeight": 0.6,
+            },
+            {
+                "target": SPACE_ID.CHECK_OUT,
+                "maxDistanceInches": 180,  # ~15'
+                "optimizationWeight": 0.8,
+            },
+        ],
+        "separation": [
+            {
+                # Avoid sterile or surgical spaces
+                "target": SPACE_GROUP.CLINICAL,
+                "hard": True,
+            },
+        ],
+    },
+
+    "visibility": {
+        "mustBeHiddenFrom": [
+            {
+                # Avoid visibility from private or staff-only spaces
+                "target": SPACE_GROUP.PRIVATE,
+                "hard": False,
+            },
+        ],
+        "mustBeVisibleFrom": [
+            {
+                # Staff or parents should have passive visibility
+                "target": SPACE_GROUP.PUBLIC,
+                "hard": False,
+            },
+        ],
+    },
+
+    "circulation": {
+        "role": CIRCULATION_ROLE_ENUM.DESTINATION,
+        "mustConnect": [
+            SPACE_ID.PATIENT_LOUNGE,
+        ],
+        "mustNotTerminateInto": [
+            SPACE_GROUP.CLINICAL,
+        ],
+    },
+
+    "optimization": {
+        "centerBias": {
+            "reference": SPACE_GROUP.PUBLIC,
+            "weight": 0.9,
+        },
+        "layoutCohesionBias": {
+            "sameCategoryBonus": 0.8,
+        },
+    },
+}
+
+# Recovery Room
+
+RECOVERY_RULES = {
+
+    "identity": {
+        "roomType": SPACE_ID.RECOVERY,
+        "category": ROOM_CATEGORY.CLINICAL,
+        "description": (
+            "Post-procedure recovery space for patients emerging from "
+            "sedation or surgery. Supports monitoring, privacy, and staff "
+            "observation prior to discharge."
+        ),
+    },
+
+    "existence": {
+        "trigger": TRIGGER_ENUM.DERIVED,
+        "countRules": [
+            {
+                # Recovery required when surgical or sedation procedures exist
+                "driver": COUNT_DRIVER_ENUM.TREATMENT_ROOMS,
+                "min": 1,
+                "max": None,
+                "condition": CONDITION_ENUM.IF_PRESENT,
+            },
+            {
+                # Optional additional recovery bays based on volume
+                "driver": COUNT_DRIVER_ENUM.OCCUPANCY,
+                "min": None,
+                "max": None,
+                "condition": CONDITION_ENUM.IF_GREATER_THAN,
+            },
+        ],
+    },
+
+    "geometry": {
+        "shape": SHAPE_ENUM.RECTANGULAR,
+        "dimensionModels": [
+            {
+                "label": "single_patient_recovery",
+                "treatmentRoomsMin": None,
+                "treatmentRoomsMax": 4,
+                "widthInches": 120,   # 10'-0"
+                "lengthInches": 120,  # 10'-0"
+                "areaSqIn": None,
+                "longAxisVariable": False,
+                "longAxisIncrementPerDoorInches": None,
+            },
+            {
+                "label": "multi_bay_recovery",
+                "treatmentRoomsMin": 5,
+                "treatmentRoomsMax": None,
+                "widthInches": 144,   # 12'-0"
+                "lengthInches": 240,  # 20'-0"
+                "areaSqIn": None,
+                "longAxisVariable": True,
+                "longAxisIncrementPerDoorInches": 36,
+            },
+        ],
+        "fallbackStrategy": GEOMETRY_FALLBACK_ENUM.MINIMUM,
+    },
+
+    "orientation": {
+        LAYOUT_ENUM.NARROW: {
+            "allowed": True,
+            "longAxisRelation": AXIS_RELATION_ENUM.PARALLEL,
+            "placementHint": PLACEMENT_ENUM.CENTER,
+            "connectsCorridors": False,
+        },
+        LAYOUT_ENUM.THREE_LAYER_CAKE: {
+            "allowed": True,
+            "longAxisRelation": AXIS_RELATION_ENUM.NONE,
+            "placementHint": PLACEMENT_ENUM.CENTER,
+            "connectsCorridors": False,
+        },
+        LAYOUT_ENUM.H_LAYOUT: {
+            "allowed": True,
+            "longAxisRelation": AXIS_RELATION_ENUM.NONE,
+            "placementHint": PLACEMENT_ENUM.CENTER,
+            "connectsCorridors": False,
+        },
+    },
+
+    "access": {
+        "entryCountRules": [
+            {
+                "treatmentRoomsMin": None,
+                "treatmentRoomsMax": None,
+                "minEntries": 1,
+                "maxEntries": 2,  # Staff + optional secondary egress
+            }
+        ],
+        "entryConstraints": [
+            {
+                # Must be easily reachable from surgical / sedation areas
+                "kind": ENTRY_RULE_ENUM.ENTRY_FROM,
+                "target": SPACE_GROUP.CLINICAL,
+                "distanceMaxInches": 300,  # ~25'
+                "hard": True,
+            },
+            {
+                # Avoid direct public access
+                "kind": ENTRY_RULE_ENUM.ENTRY_NOT_FROM,
+                "target": SPACE_GROUP.PUBLIC,
+                "distanceMaxInches": None,
+                "hard": True,
+            },
+        ],
+        "ada": {
+            "minClearWidthInches": 36,
+            "requiredEntries": 1,
+        },
+    },
+
+    "adjacency": {
+        "direct": [
+            {
+                "target": SPACE_ID.SURGICAL,
+                "condition": CONDITION_ENUM.IF_PRESENT,
+                "hard": True,
+            },
+            {
+                "target": SPACE_ID.CLINICAL_CORRIDOR,
+                "condition": CONDITION_ENUM.NONE,
+                "hard": True,
+            },
+        ],
+        "preferredProximity": [
+            {
+                # Nursing / staff monitoring nearby
+                "target": SPACE_GROUP.CLINICAL,
+                "maxDistanceInches": 180,
+                "optimizationWeight": 0.8,
+            },
+            {
+                # Restroom access after recovery
+                "target": SPACE_GROUP.PRIVATE,
+                "maxDistanceInches": 240,
+                "optimizationWeight": 0.6,
+            },
+        ],
+        "separation": [
+            {
+                # Must not open directly to waiting / check-in
+                "target": SPACE_GROUP.PUBLIC,
+                "hard": True,
+            },
+        ],
+    },
+
+    "visibility": {
+        "mustBeHiddenFrom": [
+            {
+                # Patient privacy is critical
+                "target": SPACE_GROUP.PUBLIC,
+                "hard": True,
+            },
+        ],
+        "mustBeVisibleFrom": [
+            {
+                # Staff must be able to observe patients
+                "target": SPACE_GROUP.CLINICAL,
+                "hard": False,  # May be via glazing, monitors, or doors
+            },
+        ],
+    },
+
+    "circulation": {
+        "role": CIRCULATION_ROLE_ENUM.DESTINATION,
+        "mustConnect": [
+            SPACE_ID.CLINICAL_CORRIDOR,
+        ],
+        "mustNotTerminateInto": [
+            SPACE_ID.PATIENT_LOUNGE,
+            SPACE_ID.CHECK_IN,
+        ],
+    },
+
+    "optimization": {
+        "centerBias": {
+            # Favor proximity to surgical core
+            "reference": SPACE_GROUP.CLINICAL,
+            "weight": 0.9,
+        },
+        "layoutCohesionBias": {
+            "sameCategoryBonus": 0.7,
+        },
+    },
+}
+
+# Records Room
+
+RECORDS_RULES = {
+
+    "identity": {
+        "roomType": SPACE_ID.RECORDS,
+        "category": ROOM_CATEGORY.PRIVATE,
+        "description": (
+            "Secure storage space for patient records, charts, and "
+            "administrative documentation. Intended for staff-only access "
+            "with heightened privacy and data protection requirements."
+        ),
+    },
+
+    "existence": {
+        "trigger": TRIGGER_ENUM.DERIVED,
+        "countRules": [
+            {
+                # Typically required when physical records are maintained
+                "driver": COUNT_DRIVER_ENUM.FIXED,
+                "min": 1,
+                "max": 1,
+                "condition": CONDITION_ENUM.IF_PRESENT,
+            },
+            {
+                # Optional if fully digital practice
+                "driver": COUNT_DRIVER_ENUM.FIXED,
+                "min": 0,
+                "max": 1,
+                "condition": CONDITION_ENUM.IF_ABSENT,
+            },
+        ],
+    },
+
+    "geometry": {
+        "shape": SHAPE_ENUM.RECTANGULAR,
+        "dimensionModels": [
+            {
+                "label": "compact_records_storage",
+                "treatmentRoomsMin": None,
+                "treatmentRoomsMax": 6,
+                "widthInches": 72,    # 6'-0"
+                "lengthInches": 96,   # 8'-0"
+                "areaSqIn": None,
+                "longAxisVariable": False,
+                "longAxisIncrementPerDoorInches": None,
+            },
+            {
+                "label": "expanded_records_storage",
+                "treatmentRoomsMin": 7,
+                "treatmentRoomsMax": None,
+                "widthInches": 96,    # 8'-0"
+                "lengthInches": 144,  # 12'-0"
+                "areaSqIn": None,
+                "longAxisVariable": True,
+                "longAxisIncrementPerDoorInches": 24,
+            },
+        ],
+        "fallbackStrategy": GEOMETRY_FALLBACK_ENUM.MINIMUM,
+    },
+
+    "orientation": {
+        LAYOUT_ENUM.NARROW: {
+            "allowed": True,
+            "longAxisRelation": AXIS_RELATION_ENUM.PARALLEL,
+            "placementHint": PLACEMENT_ENUM.CENTER,
+            "connectsCorridors": False,
+        },
+        LAYOUT_ENUM.THREE_LAYER_CAKE: {
+            "allowed": True,
+            "longAxisRelation": AXIS_RELATION_ENUM.NONE,
+            "placementHint": PLACEMENT_ENUM.CENTER,
+            "connectsCorridors": False,
+        },
+        LAYOUT_ENUM.H_LAYOUT: {
+            "allowed": True,
+            "longAxisRelation": AXIS_RELATION_ENUM.NONE,
+            "placementHint": PLACEMENT_ENUM.CENTER,
+            "connectsCorridors": False,
+        },
+    },
+
+    "access": {
+        "entryCountRules": [
+            {
+                "treatmentRoomsMin": None,
+                "treatmentRoomsMax": None,
+                "minEntries": 1,
+                "maxEntries": 1,  # Single controlled access point
+            }
+        ],
+        "entryConstraints": [
+            {
+                # Must not be publicly accessible
+                "kind": ENTRY_RULE_ENUM.ENTRY_NOT_FROM,
+                "target": SPACE_GROUP.PUBLIC,
+                "distanceMaxInches": None,
+                "hard": True,
+            },
+            {
+                # Prefer access from staff/admin circulation
+                "kind": ENTRY_RULE_ENUM.ENTRY_FROM,
+                "target": SPACE_GROUP.ADMIN,
+                "distanceMaxInches": None,
+                "hard": False,
+            },
+        ],
+        "ada": {
+            # ADA applies only if staff regularly occupy space
+            "minClearWidthInches": 32,
+            "requiredEntries": 1,
+        },
+    },
+
+    "adjacency": {
+        "direct": [
+            {
+                # Commonly near admin or staff work areas
+                "target": SPACE_GROUP.ADMIN,
+                "condition": CONDITION_ENUM.NONE,
+                "hard": False,
+            },
+        ],
+        "preferredProximity": [
+            {
+                "target": SPACE_ID.BUSINESS_OFFICE,
+                "maxDistanceInches": 120,
+                "optimizationWeight": 0.8,
+            },
+            {
+                "target": SPACE_GROUP.CLINICAL,
+                "maxDistanceInches": 180,
+                "optimizationWeight": 0.4,
+            },
+        ],
+        "separation": [
+            {
+                # Hard privacy separation
+                "target": SPACE_GROUP.PATIENT_FACING,
+                "hard": True,
+            },
+            {
+                "target": SPACE_GROUP.CLINICAL,
+                "hard": False,
+            },
+        ],
+    },
+
+    "visibility": {
+        "mustBeHiddenFrom": [
+            {
+                # Records must never be visible to patients or visitors
+                "target": SPACE_GROUP.PUBLIC,
+                "hard": True,
+            },
+        ],
+        "mustBeVisibleFrom": [],
+    },
+
+    "circulation": {
+        "role": CIRCULATION_ROLE_ENUM.DESTINATION,
+        "mustConnect": [
+            SPACE_GROUP.ADMIN,
+        ],
+        "mustNotTerminateInto": [
+            SPACE_ID.PATIENT_LOUNGE,
+            SPACE_ID.CHECK_IN,
+        ],
+    },
+
+    "optimization": {
+        "centerBias": {
+            # Favor administrative cluster rather than clinical core
+            "reference": SPACE_GROUP.ADMIN,
+            "weight": 0.7,
+        },
+        "layoutCohesionBias": {
+            "sameCategoryBonus": 0.9,
+        },
+    },
+}
+
+# Changing Room
+
+CHANGING_RULES = {
+
+    "identity": {
+        "roomType": SPACE_ID.CHANGING,
+        "category": ROOM_CATEGORY.PRIVATE,
+        "description": (
+            "Private changing room for patients or staff to change clothing, "
+            "store personal items, or prepare for clinical procedures."
+        ),
+    },
+
+    "existence": {
+        "trigger": TRIGGER_ENUM.DERIVED,
+        "countRules": [
+            {
+                # Typically required for procedures involving gowns or uniforms
+                "driver": COUNT_DRIVER_ENUM.TREATMENT_ROOMS,
+                "min": 1,
+                "max": 2,
+                "condition": CONDITION_ENUM.IF_PRESENT,
+            },
+            {
+                # Optional in practices without changing needs
+                "driver": COUNT_DRIVER_ENUM.FIXED,
+                "min": 0,
+                "max": 1,
+                "condition": CONDITION_ENUM.IF_ABSENT,
+            },
+        ],
+    },
+
+    "geometry": {
+        "shape": SHAPE_ENUM.RECTANGULAR,
+        "dimensionModels": [
+            {
+                "label": "single_person_changing",
+                "treatmentRoomsMin": None,
+                "treatmentRoomsMax": 6,
+                "widthInches": 60,     # 5'-0"
+                "lengthInches": 72,    # 6'-0"
+                "areaSqIn": None,
+                "longAxisVariable": False,
+                "longAxisIncrementPerDoorInches": None,
+            },
+            {
+                "label": "accessible_or_staff_changing",
+                "treatmentRoomsMin": 7,
+                "treatmentRoomsMax": None,
+                "widthInches": 72,     # 6'-0"
+                "lengthInches": 96,    # 8'-0"
+                "areaSqIn": None,
+                "longAxisVariable": False,
+                "longAxisIncrementPerDoorInches": None,
+            },
+        ],
+        "fallbackStrategy": GEOMETRY_FALLBACK_ENUM.MINIMUM,
+    },
+
+    "orientation": {
+        LAYOUT_ENUM.NARROW: {
+            "allowed": True,
+            "longAxisRelation": AXIS_RELATION_ENUM.PARALLEL,
+            "placementHint": PLACEMENT_ENUM.CENTER,
+            "connectsCorridors": False,
+        },
+        LAYOUT_ENUM.THREE_LAYER_CAKE: {
+            "allowed": True,
+            "longAxisRelation": AXIS_RELATION_ENUM.NONE,
+            "placementHint": PLACEMENT_ENUM.CENTER,
+            "connectsCorridors": False,
+        },
+        LAYOUT_ENUM.H_LAYOUT: {
+            "allowed": True,
+            "longAxisRelation": AXIS_RELATION_ENUM.NONE,
+            "placementHint": PLACEMENT_ENUM.CENTER,
+            "connectsCorridors": False,
+        },
+    },
+
+    "access": {
+        "entryCountRules": [
+            {
+                "treatmentRoomsMin": None,
+                "treatmentRoomsMax": None,
+                "minEntries": 1,
+                "maxEntries": 1,
+            }
+        ],
+        "entryConstraints": [
+            {
+                # Must not open directly to public waiting
+                "kind": ENTRY_RULE_ENUM.ENTRY_NOT_FROM,
+                "target": SPACE_GROUP.PUBLIC,
+                "distanceMaxInches": None,
+                "hard": True,
+            },
+            {
+                # Typically accessed from clinical or staff circulation
+                "kind": ENTRY_RULE_ENUM.ENTRY_FROM,
+                "target": SPACE_GROUP.CLINICAL,
+                "distanceMaxInches": None,
+                "hard": False,
+            },
+        ],
+        "ada": {
+            # TODO: Confirm whether this changing room must be fully ADA accessible
+            "minClearWidthInches": 32,
+            "requiredEntries": 1,
+        },
+    },
+
+    "adjacency": {
+        "direct": [
+            {
+                # Often near treatment or recovery spaces
+                "target": SPACE_GROUP.CLINICAL,
+                "condition": CONDITION_ENUM.NONE,
+                "hard": False,
+            },
+        ],
+        "preferredProximity": [
+            {
+                "target": SPACE_ID.RECOVERY,
+                "maxDistanceInches": 120,
+                "optimizationWeight": 0.6,
+            },
+            {
+                "target": SPACE_ID.TREATMENT_ROOM,
+                "maxDistanceInches": 180,
+                "optimizationWeight": 0.4,
+            },
+        ],
+        "separation": [
+            {
+                # Privacy requirement
+                "target": SPACE_GROUP.PUBLIC,
+                "hard": True,
+            },
+        ],
+    },
+
+    "visibility": {
+        "mustBeHiddenFrom": [
+            {
+                "target": SPACE_GROUP.PUBLIC,
+                "hard": True,
+            },
+        ],
+        "mustBeVisibleFrom": [],
+    },
+
+    "circulation": {
+        "role": CIRCULATION_ROLE_ENUM.DESTINATION,
+        "mustConnect": [
+            SPACE_GROUP.CLINICAL,
+        ],
+        "mustNotTerminateInto": [
+            SPACE_ID.PATIENT_LOUNGE,
+            SPACE_ID.CHECK_IN,
+        ],
+    },
+
+    "optimization": {
+        "centerBias": {
+            # Bias toward clinical zone but not the core
+            "reference": SPACE_GROUP.CLINICAL,
+            "weight": 0.5,
+        },
+        "layoutCohesionBias": {
+            "sameCategoryBonus": 0.8,
+        },
+    },
+}
+
+# Nursing Room
+
+NURSING_RULES = {
+
+    "identity": {
+        "roomType": SPACE_ID.NURSING,
+        "category": ROOM_CATEGORY.CLINICAL,
+        "description": (
+            "Clinical nursing support space used for charting, care coordination, "
+            "clinical prep, and staff observation of treatment areas. "
+            "Not intended for primary patient treatment."
+        ),
+    },
+
+    "existence": {
+        "trigger": TRIGGER_ENUM.DERIVED,
+        "countRules": [
+            {
+                # One nursing station typically supports multiple treatment rooms
+                "driver": COUNT_DRIVER_ENUM.TREATMENT_ROOMS,
+                "min": 1,
+                "max": 1,
+                "condition": CONDITION_ENUM.IF_PRESENT,
+            },
+            {
+                # Larger clinics may require multiple stations
+                "driver": COUNT_DRIVER_ENUM.TREATMENT_ROOMS,
+                "min": 2,
+                "max": None,
+                "condition": CONDITION_ENUM.IF_GREATER_THAN,
+            },
+        ],
+    },
+
+    "geometry": {
+        "shape": SHAPE_ENUM.RECTILINEAR,
+        "dimensionModels": [
+            {
+                "label": "small_nursing_station",
+                "treatmentRoomsMin": 1,
+                "treatmentRoomsMax": 6,
+                "widthInches": 96,     # 8'-0"
+                "lengthInches": 120,   # 10'-0"
+                "areaSqIn": None,
+                "longAxisVariable": True,
+                "longAxisIncrementPerDoorInches": None,
+            },
+            {
+                "label": "large_nursing_station",
+                "treatmentRoomsMin": 7,
+                "treatmentRoomsMax": None,
+                "widthInches": 120,    # 10'-0"
+                "lengthInches": 144,   # 12'-0"
+                "areaSqIn": None,
+                "longAxisVariable": True,
+                "longAxisIncrementPerDoorInches": None,
+            },
+        ],
+        "fallbackStrategy": GEOMETRY_FALLBACK_ENUM.MINIMUM,
+    },
+
+    "orientation": {
+        LAYOUT_ENUM.NARROW: {
+            "allowed": True,
+            "longAxisRelation": AXIS_RELATION_ENUM.PARALLEL,
+            "placementHint": PLACEMENT_ENUM.CENTER,
+            "connectsCorridors": False,
+        },
+        LAYOUT_ENUM.THREE_LAYER_CAKE: {
+            "allowed": True,
+            "longAxisRelation": AXIS_RELATION_ENUM.NONE,
+            "placementHint": PLACEMENT_ENUM.CENTER,
+            "connectsCorridors": False,
+        },
+        LAYOUT_ENUM.H_LAYOUT: {
+            "allowed": True,
+            "longAxisRelation": AXIS_RELATION_ENUM.NONE,
+            "placementHint": PLACEMENT_ENUM.CENTER,
+            "connectsCorridors": False,
+        },
+    },
+
+    "access": {
+        "entryCountRules": [
+            {
+                # Typically one primary entry
+                "treatmentRoomsMin": None,
+                "treatmentRoomsMax": None,
+                "minEntries": 1,
+                "maxEntries": 2,
+            }
+        ],
+        "entryConstraints": [
+            {
+                # Must not open directly to public waiting
+                "kind": ENTRY_RULE_ENUM.ENTRY_NOT_FROM,
+                "target": SPACE_GROUP.PUBLIC,
+                "distanceMaxInches": None,
+                "hard": True,
+            },
+            {
+                # Should be accessed from clinical circulation
+                "kind": ENTRY_RULE_ENUM.ENTRY_FROM,
+                "target": SPACE_GROUP.CLINICAL,
+                "distanceMaxInches": None,
+                "hard": True,
+            },
+        ],
+        "ada": {
+            # TODO: Confirm whether nursing station requires full ADA compliance
+            "minClearWidthInches": 32,
+            "requiredEntries": 1,
+        },
+    },
+
+    "adjacency": {
+        "direct": [
+            {
+                # Strong adjacency to treatment rooms
+                "target": SPACE_GROUP.CLINICAL,
+                "condition": CONDITION_ENUM.NONE,
+                "hard": True,
+            },
+        ],
+        "preferredProximity": [
+            {
+                "target": SPACE_ID.STORAGE_CLOSET,
+                "maxDistanceInches": 120,
+                "optimizationWeight": 0.7,
+            },
+            {
+                "target": SPACE_ID.RECOVERY,
+                "maxDistanceInches": 180,
+                "optimizationWeight": 0.5,
+            },
+            {
+                "target": SPACE_ID.MED_GAS,
+                "maxDistanceInches": 120,
+                "optimizationWeight": 0.6,
+            },
+        ],
+        "separation": [
+            {
+                # Avoid public exposure
+                "target": SPACE_GROUP.PATIENT_FACING,
+                "hard": True,
+            },
+            {
+                # Avoid administrative noise overlap
+                "target": SPACE_GROUP.ADMIN,
+                "hard": False,
+            },
+        ],
+    },
+
+    "visibility": {
+        "mustBeHiddenFrom": [
+            {
+                # PHI protection
+                "target": SPACE_GROUP.PUBLIC,
+                "hard": True,
+            },
+        ],
+        "mustBeVisibleFrom": [
+            {
+                # Nurses should visually monitor treatment areas
+                "target": SPACE_GROUP.CLINICAL,
+                "hard": False,
+            },
+        ],
+    },
+
+    "circulation": {
+        "role": CIRCULATION_ROLE_ENUM.DESTINATION,
+        "mustConnect": [
+            SPACE_GROUP.CLINICAL,
+        ],
+        "mustNotTerminateInto": [
+            SPACE_ID.PATIENT_LOUNGE,
+            SPACE_ID.CHECK_IN,
+        ],
+    },
+
+    "optimization": {
+        "centerBias": {
+            # Nursing functions best when centrally located in clinical zone
+            "reference": SPACE_GROUP.CLINICAL,
+            "weight": 0.9,
+        },
+        "layoutCohesionBias": {
+            "sameCategoryBonus": 1.0,
+        },
+    },
+}
+
+# Laundry Room
+
+LAUNDRY_RULES = {
+
+    "identity": {
+        "roomType": SPACE_ID.LAUNDRY,
+        "category": ROOM_CATEGORY.CLINICAL,
+        "description": (
+            "Clinical support space for laundering, staging, and handling of "
+            "soiled and clean linens, towels, and staff garments. "
+            "Not patient-facing."
+        ),
+    },
+
+    "existence": {
+        "trigger": TRIGGER_ENUM.DERIVED,
+        "countRules": [
+            {
+                # Small clinics typically require at least one laundry room
+                "driver": COUNT_DRIVER_ENUM.TREATMENT_ROOMS,
+                "min": 1,
+                "max": 1,
+                "condition": CONDITION_ENUM.IF_PRESENT,
+            },
+            {
+                # Larger clinics or high-volume operations may require more
+                "driver": COUNT_DRIVER_ENUM.TREATMENT_ROOMS,
+                "min": 2,
+                "max": None,
+                "condition": CONDITION_ENUM.IF_GREATER_THAN,
+            },
+        ],
+    },
+
+    "geometry": {
+        "shape": SHAPE_ENUM.RECTANGULAR,
+        "dimensionModels": [
+            {
+                "label": "compact_laundry",
+                "treatmentRoomsMin": 1,
+                "treatmentRoomsMax": 6,
+                "widthInches": 72,     # 6'-0"
+                "lengthInches": 96,    # 8'-0"
+                "areaSqIn": None,
+                "longAxisVariable": False,
+                "longAxisIncrementPerDoorInches": None,
+            },
+            {
+                "label": "full_laundry",
+                "treatmentRoomsMin": 7,
+                "treatmentRoomsMax": None,
+                "widthInches": 96,     # 8'-0"
+                "lengthInches": 144,   # 12'-0"
+                "areaSqIn": None,
+                "longAxisVariable": True,
+                "longAxisIncrementPerDoorInches": None,
+            },
+        ],
+        "fallbackStrategy": GEOMETRY_FALLBACK_ENUM.MINIMUM,
+    },
+
+    "orientation": {
+        LAYOUT_ENUM.NARROW: {
+            "allowed": True,
+            "longAxisRelation": AXIS_RELATION_ENUM.PARALLEL,
+            "placementHint": PLACEMENT_ENUM.CENTER,
+            "connectsCorridors": False,
+        },
+        LAYOUT_ENUM.THREE_LAYER_CAKE: {
+            "allowed": True,
+            "longAxisRelation": AXIS_RELATION_ENUM.NONE,
+            "placementHint": PLACEMENT_ENUM.CENTER,
+            "connectsCorridors": False,
+        },
+        LAYOUT_ENUM.H_LAYOUT: {
+            "allowed": True,
+            "longAxisRelation": AXIS_RELATION_ENUM.NONE,
+            "placementHint": PLACEMENT_ENUM.CENTER,
+            "connectsCorridors": False,
+        },
+    },
+
+    "access": {
+        "entryCountRules": [
+            {
+                # Typically one controlled staff entry
+                "treatmentRoomsMin": None,
+                "treatmentRoomsMax": None,
+                "minEntries": 1,
+                "maxEntries": 1,
+            }
+        ],
+        "entryConstraints": [
+            {
+                # Must not open directly to public areas
+                "kind": ENTRY_RULE_ENUM.ENTRY_NOT_FROM,
+                "target": SPACE_GROUP.PUBLIC,
+                "distanceMaxInches": None,
+                "hard": True,
+            },
+            {
+                # Should be accessed from clinical/service circulation
+                "kind": ENTRY_RULE_ENUM.ENTRY_FROM,
+                "target": SPACE_GROUP.CLINICAL,
+                "distanceMaxInches": None,
+                "hard": True,
+            },
+        ],
+        "ada": {
+            # TODO: Confirm ADA requirements if staff-only room is exempt
+            "minClearWidthInches": 32,
+            "requiredEntries": 1,
+        },
+    },
+
+    "adjacency": {
+        "direct": [
+            {
+                # Direct access to service circulation is important
+                "target": SPACE_GROUP.CLINICAL,
+                "condition": CONDITION_ENUM.NONE,
+                "hard": True,
+            },
+        ],
+        "preferredProximity": [
+            {
+                "target": SPACE_ID.STORAGE_CLOSET,
+                "maxDistanceInches": 120,
+                "optimizationWeight": 0.7,
+            },
+            {
+                "target": SPACE_ID.HYGIENE,
+                "maxDistanceInches": 180,
+                "optimizationWeight": 0.5,
+            },
+        ],
+        "separation": [
+            {
+                # Infection control and noise concerns
+                "target": SPACE_GROUP.CLINICAL,
+                "hard": False,
+            },
+            {
+                "target": SPACE_GROUP.PATIENT_FACING,
+                "hard": True,
+            },
+        ],
+    },
+
+    "visibility": {
+        "mustBeHiddenFrom": [
+            {
+                # Soiled materials must not be visible publicly
+                "target": SPACE_GROUP.PUBLIC,
+                "hard": True,
+            },
+        ],
+        "mustBeVisibleFrom": [],
+    },
+
+    "circulation": {
+        "role": CIRCULATION_ROLE_ENUM.DESTINATION,
+        "mustConnect": [
+            SPACE_GROUP.CLINICAL,
+        ],
+        "mustNotTerminateInto": [
+            SPACE_ID.PATIENT_LOUNGE,
+            SPACE_ID.CHECK_IN,
+        ],
+    },
+
+    "optimization": {
+        "centerBias": {
+            # Laundry should bias toward service zones, not public center
+            "reference": SPACE_GROUP.PUBLIC,
+            "weight": 0.6,
+        },
+        "layoutCohesionBias": {
+            "sameCategoryBonus": 0.8,
+        },
+    },
+}
+
+# Server Room
+
+SERVER_CLOSET_RULES = {
+
+    "identity": {
+        "roomType": SPACE_ID.SERVER_CLOSET,
+        "category": ROOM_CATEGORY.PRIVATE,
+        "description": (
+            "Dedicated server and IT equipment closet housing network racks, "
+            "telecom equipment, and associated electrical infrastructure. "
+            "Requires restricted access, cooling, and proximity to staff areas."
+        ),
+    },
+
+    "existence": {
+        "trigger": TRIGGER_ENUM.DERIVED,
+        "countRules": [
+            {
+                "driver": COUNT_DRIVER_ENUM.BUILDING_SQFT,
+                "min": 1,
+                "max": None,
+                "condition": CONDITION_ENUM.NONE,
+            },
+        ],
+    },
+
+    "geometry": {
+        "shape": SHAPE_ENUM.RECTANGULAR,
+        "dimensionModels": [
+            {
+                "label": "small_server_closet",
+                "treatmentRoomsMin": None,
+                "treatmentRoomsMax": None,
+                "widthInches": 72,    # 6'-0"
+                "lengthInches": 96,   # 8'-0"
+                "areaSqIn": None,
+                "longAxisVariable": False,
+                "longAxisIncrementPerDoorInches": None,
+            },
+            {
+                "label": "large_server_closet",
+                "treatmentRoomsMin": None,
+                "treatmentRoomsMax": None,
+                "widthInches": 96,    # 8'-0"
+                "lengthInches": 144,  # 12'-0"
+                "areaSqIn": None,
+                "longAxisVariable": False,
+                "longAxisIncrementPerDoorInches": None,
+            },
+        ],
+        "fallbackStrategy": GEOMETRY_FALLBACK_ENUM.MINIMUM,
+    },
+
+    #orientation not rlly needed?
+
+    "access": {
+        "entryCountRules": [
+            {
+                "treatmentRoomsMin": None,
+                "treatmentRoomsMax": None,
+                "minEntries": 1,
+                "maxEntries": 1,
+            }
+        ],
+        "entryConstraints": [
+            {
+                "kind": ENTRY_RULE_ENUM.ENTRY_NOT_FROM,
+                "target": SPACE_GROUP.PUBLIC,
+                "distanceMaxInches": None,
+                "hard": True,
+            }
+        ],
+        "ada": {
+            "minClearWidthInches": 32,  # Typical closet / service access
+            "requiredEntries": 1,
+        },
+    },
+
+    "adjacency": {
+        "direct": [],
+        "preferredProximity": [
+            {
+                "target": SPACE_GROUP.SUPPORT,
+                "maxDistanceInches": 240,  # ~20'
+                "optimizationWeight": 0.7,
+            }
+        ],
+        "separation": [
+            {
+                "target": SPACE_GROUP.CLINICAL,
+                "hard": True,
+            }
+        ],
+    },
+
+    "visibility": {
+        "mustBeHiddenFrom": [
+            {
+                "target": SPACE_GROUP.PUBLIC,
+                "hard": True,
+            }
+        ],
+        "mustBeVisibleFrom": [],
+    },
+
+    "circulation": {
+        "role": CIRCULATION_ROLE_ENUM.DESTINATION,
+        "mustConnect": [
+            SPACE_ID.CLINICAL_CORRIDOR,
+        ],
+        "mustNotTerminateInto": [
+            SPACE_ID.PATIENT_LOUNGE,
+        ],
+    },
+
+    "optimization": {
+        "centerBias": {
+            "reference": SPACE_GROUP.SUPPORT,
+            "weight": 0.4,
+        },
+        "layoutCohesionBias": {
+            "sameCategoryBonus": 0.8,
+        },
+    },
+}
+
+# Janitor Closet
+
+JANITOR_CLOSET_RULES = {
+
+    "identity": {
+        "roomType": SPACE_ID.JANITOR_CLOSET,
+        "category": ROOM_CATEGORY.PRIVATE,
+        "description": (
+            "Janitor or environmental services closet used for storage of "
+            "cleaning supplies, mop sink, and housekeeping equipment. "
+            "Requires service access and separation from public-facing areas."
+        ),
+    },
+
+    "existence": {
+        "trigger": TRIGGER_ENUM.DERIVED,
+        "countRules": [
+            {
+                "driver": COUNT_DRIVER_ENUM.BUILDING_SQFT,
+                "min": 1,
+                "max": None,
+                "condition": CONDITION_ENUM.NONE,
+            }
+        ],
+    },
+
+    "geometry": {
+        "shape": SHAPE_ENUM.RECTANGULAR,
+        "dimensionModels": [
+            {
+                "label": "minimum_janitor_closet",
+                "treatmentRoomsMin": None,
+                "treatmentRoomsMax": None,
+                "widthInches": 60,   # 5'-0"
+                "lengthInches": 60,  # 5'-0"
+                "areaSqIn": None,
+                "longAxisVariable": False,
+                "longAxisIncrementPerDoorInches": None,
+            },
+            {
+                "label": "large_janitor_closet",
+                "treatmentRoomsMin": None,
+                "treatmentRoomsMax": None,
+                "widthInches": 72,   # 6'-0"
+                "lengthInches": 96,  # 8'-0"
+                "areaSqIn": None,
+                "longAxisVariable": False,
+                "longAxisIncrementPerDoorInches": None,
+            },
+        ],
+        "fallbackStrategy": GEOMETRY_FALLBACK_ENUM.MINIMUM,
+    },
+
+    "orientation": {
+        LAYOUT_ENUM.NARROW: {
+            "allowed": True,
+            "longAxisRelation": AXIS_RELATION_ENUM.NONE,
+            "placementHint": PLACEMENT_ENUM.BACK,
+            "connectsCorridors": False,
+        },
+        LAYOUT_ENUM.THREE_LAYER_CAKE: {
+            "allowed": True,
+            "longAxisRelation": AXIS_RELATION_ENUM.NONE,
+            "placementHint": PLACEMENT_ENUM.BETWEEN,
+            "connectsCorridors": False,
+        },
+        LAYOUT_ENUM.H_LAYOUT: {
+            "allowed": True,
+            "longAxisRelation": AXIS_RELATION_ENUM.NONE,
+            "placementHint": PLACEMENT_ENUM.END,
+            "connectsCorridors": False,
+        },
+    },
+
+    "access": {
+        "entryCountRules": [
+            {
+                "treatmentRoomsMin": None,
+                "treatmentRoomsMax": None,
+                "minEntries": 1,
+                "maxEntries": 1,
+            }
+        ],
+        "entryConstraints": [
+            {
+                "kind": ENTRY_RULE_ENUM.ENTRY_NOT_FROM,
+                "target": SPACE_GROUP.PUBLIC,
+                "distanceMaxInches": None,
+                "hard": True,
+            }
+        ],
+        "ada": {
+            "minClearWidthInches": 32,
+            "requiredEntries": 1,
+        },
+    },
+
+    "adjacency": {
+        "direct": [],
+        "preferredProximity": [
+            {
+                "target": SPACE_GROUP.SUPPORT,
+                "maxDistanceInches": 300,  # ~25'
+                "optimizationWeight": 0.6,
+            }
+        ],
+        "separation": [
+            {
+                "target": SPACE_GROUP.PUBLIC,
+                "hard": True,
+            }
+        ],
+    },
+
+    "visibility": {
+        "mustBeHiddenFrom": [
+            {
+                "target": SPACE_GROUP.PUBLIC,
+                "hard": True,
+            }
+        ],
+        "mustBeVisibleFrom": [],
+    },
+
+    "circulation": {
+        "role": CIRCULATION_ROLE_ENUM.DESTINATION,
+        "mustConnect": [
+            SPACE_ID.CLINICAL_CORRIDOR,
+        ],
+        "mustNotTerminateInto": [
+            SPACE_ID.PATIENT_LOUNGE,
+        ],
+    },
+
+    "optimization": {
+        "centerBias": {
+            "reference": SPACE_GROUP.SUPPORT,
+            "weight": 0.3,
+        },
+        "layoutCohesionBias": {
+            "sameCategoryBonus": 0.9,
+        },
+    },
+}
+
+# Medical Gas Room
+
+MED_GAS_RULES = {
+
+    "identity": {
+        "roomType": SPACE_ID.MED_GAS,
+        "category": ROOM_CATEGORY.PRIVATE,
+        "description": (
+            "Dedicated medical gas storage or manifold room for oxygen, nitrous oxide, "
+            "or other medical gases. Typically restricted access, non-public, "
+            "and separated from patient-facing spaces."
+        ),
+    },
+
+    "existence": {
+        "trigger": TRIGGER_ENUM.DERIVED,
+        "countRules": [
+            {
+                "driver": COUNT_DRIVER_ENUM.TREATMENT_ROOMS,
+                "min": 1,
+                "max": 1,
+                "condition": CONDITION_ENUM.IF_GREATER_THAN,
+                # TODO: Confirm treatment room threshold at which med gas is required
+            }
+        ],
+    },
+
+    "geometry": {
+        "shape": SHAPE_ENUM.RECTANGULAR,
+        "dimensionModels": [
+            {
+                "label": "minimum_med_gas_room",
+                "treatmentRoomsMin": None,
+                "treatmentRoomsMax": None,
+                "widthInches": 72,    # 6'-0"
+                "lengthInches": 96,   # 8'-0"
+                "areaSqIn": None,
+                "longAxisVariable": False,
+                "longAxisIncrementPerDoorInches": None,
+            },
+            {
+                "label": "expanded_med_gas_room",
+                "treatmentRoomsMin": 8,
+                "treatmentRoomsMax": None,
+                "widthInches": 96,    # 8'-0"
+                "lengthInches": 120,  # 10'-0"
+                "areaSqIn": None,
+                "longAxisVariable": False,
+                "longAxisIncrementPerDoorInches": None,
+            },
+        ],
+        "fallbackStrategy": GEOMETRY_FALLBACK_ENUM.MINIMUM,
+    },
+
+    "orientation": {
+        LAYOUT_ENUM.NARROW: {
+            "allowed": True,
+            "longAxisRelation": AXIS_RELATION_ENUM.NONE,
+            "placementHint": PLACEMENT_ENUM.BACK,
+            "connectsCorridors": False,
+        },
+        LAYOUT_ENUM.THREE_LAYER_CAKE: {
+            "allowed": True,
+            "longAxisRelation": AXIS_RELATION_ENUM.NONE,
+            "placementHint": PLACEMENT_ENUM.BETWEEN,
+            "connectsCorridors": False,
+        },
+        LAYOUT_ENUM.H_LAYOUT: {
+            "allowed": True,
+            "longAxisRelation": AXIS_RELATION_ENUM.NONE,
+            "placementHint": PLACEMENT_ENUM.END,
+            "connectsCorridors": False,
+        },
+    },
+
+    "access": {
+        "entryCountRules": [
+            {
+                "treatmentRoomsMin": None,
+                "treatmentRoomsMax": None,
+                "minEntries": 1,
+                "maxEntries": 1,
+            }
+        ],
+        "entryConstraints": [
+            {
+                "kind": ENTRY_RULE_ENUM.ENTRY_NOT_FROM,
+                "target": SPACE_GROUP.PUBLIC,
+                "distanceMaxInches": None,
+                "hard": True,
+            },
+            {
+                "kind": ENTRY_RULE_ENUM.ENTRY_NOT_FROM,
+                "target": SPACE_GROUP.PATIENT_FACING,
+                "distanceMaxInches": None,
+                "hard": True,
+            },
+        ],
+        "ada": {
+            "minClearWidthInches": 32,
+            "requiredEntries": 1,
+            # TODO: Confirm if ADA access is required by jurisdiction or staff-only exemption
+        },
+    },
+
+    "adjacency": {
+        "direct": [],
+        "preferredProximity": [
+            {
+                "target": SPACE_GROUP.CLINICAL,
+                "maxDistanceInches": None,
+                "optimizationWeight": 0.7,
+            },
+            {
+                "target": SPACE_GROUP.SUPPORT,
+                "maxDistanceInches": 360,  # ~30'
+                "optimizationWeight": 0.5,
+            },
+        ],
+        "separation": [
+            {
+                "target": SPACE_GROUP.PUBLIC,
+                "hard": True,
+            },
+            {
+                "target": SPACE_GROUP.PATIENT_FACING,
+                "hard": True,
+            },
+        ],
+    },
+
+    "visibility": {
+        "mustBeHiddenFrom": [
+            {
+                "target": SPACE_GROUP.PUBLIC,
+                "hard": True,
+            },
+            {
+                "target": SPACE_GROUP.PATIENT_FACING,
+                "hard": True,
+            },
+        ],
+        "mustBeVisibleFrom": [],
+    },
+
+    "circulation": {
+        "role": CIRCULATION_ROLE_ENUM.DESTINATION,
+        "mustConnect": [
+            SPACE_ID.CLINICAL_CORRIDOR,
+        ],
+        "mustNotTerminateInto": [
+            SPACE_ID.PATIENT_LOUNGE,
+            SPACE_ID.CHECK_IN,
+            SPACE_ID.CHECK_OUT,
+        ],
+    },
+
+    "optimization": {
+        "centerBias": {
+            "reference": SPACE_GROUP.CLINICAL,
+            "weight": 0.4,
+        },
+        "layoutCohesionBias": {
+            "sameCategoryBonus": 1.0,
+        },
+    },
+}
+
+# Storage Closet
+
+STORAGE_CLOSET_RULES = {
+
+    "identity": {
+        "roomType": SPACE_ID.STORAGE_CLOSET,
+        "category": ROOM_CATEGORY.PRIVATE,
+        "description": (
+            "Small storage closet for supplies, equipment, or general storage. "
+            "Typically staff-only access, not patient-facing."
+        ),
+    },
+
+    "existence": {
+        "trigger": TRIGGER_ENUM.ALWAYS,
+        "countRules": [
+            {
+                "driver": COUNT_DRIVER_ENUM.FIXED,
+                "min": 1,
+                "max": None,
+                "condition": CONDITION_ENUM.NONE,
+            }
+        ],
+    },
+
+    "geometry": {
+        "shape": SHAPE_ENUM.RECTANGULAR,
+        "dimensionModels": [
+            {
+                "label": "small_storage_closet",
+                "treatmentRoomsMin": None,
+                "treatmentRoomsMax": None,
+                "widthInches": 48,    # 4'-0"
+                "lengthInches": 60,   # 5'-0"
+                "areaSqIn": None,
+                "longAxisVariable": False,
+                "longAxisIncrementPerDoorInches": None,
+            },
+            {
+                "label": "medium_storage_closet",
+                "treatmentRoomsMin": None,
+                "treatmentRoomsMax": None,
+                "widthInches": 60,    # 5'-0"
+                "lengthInches": 72,   # 6'-0"
+                "areaSqIn": None,
+                "longAxisVariable": False,
+                "longAxisIncrementPerDoorInches": None,
+            },
+        ],
+        "fallbackStrategy": GEOMETRY_FALLBACK_ENUM.MINIMUM,
+    },
+
+    "orientation": {
+        LAYOUT_ENUM.NARROW: {
+            "allowed": True,
+            "longAxisRelation": AXIS_RELATION_ENUM.NONE,
+            "placementHint": PLACEMENT_ENUM.BACK,
+            "connectsCorridors": False,
+        },
+        LAYOUT_ENUM.THREE_LAYER_CAKE: {
+            "allowed": True,
+            "longAxisRelation": AXIS_RELATION_ENUM.NONE,
+            "placementHint": PLACEMENT_ENUM.BETWEEN,
+            "connectsCorridors": False,
+        },
+        LAYOUT_ENUM.H_LAYOUT: {
+            "allowed": True,
+            "longAxisRelation": AXIS_RELATION_ENUM.NONE,
+            "placementHint": PLACEMENT_ENUM.END,
+            "connectsCorridors": False,
+        },
+    },
+
+    "access": {
+        "entryCountRules": [
+            {
+                "treatmentRoomsMin": None,
+                "treatmentRoomsMax": None,
+                "minEntries": 1,
+                "maxEntries": 1,
+            }
+        ],
+        "entryConstraints": [
+            {
+                "kind": ENTRY_RULE_ENUM.ENTRY_NOT_FROM,
+                "target": SPACE_GROUP.PUBLIC,
+                "distanceMaxInches": None,
+                "hard": True,
+            }
+        ],
+        "ada": {
+            "minClearWidthInches": 32,
+            "requiredEntries": 1,
+            # TODO: Confirm if ADA compliance is required for staff-only storage
+        },
+    },
+
+    "adjacency": {
+        "direct": [],
+        "preferredProximity": [
+            {
+                "target": SPACE_GROUP.STAFF,
+                "maxDistanceInches": 300,  # 25'
+                "optimizationWeight": 0.8,
+            },
+            {
+                "target": SPACE_GROUP.CLINICAL,
+                "maxDistanceInches": 360,  # 30'
+                "optimizationWeight": 0.5,
+            },
+        ],
+        "separation": [
+            {
+                "target": SPACE_GROUP.PUBLIC,
+                "hard": True,
+            },
+            {
+                "target": SPACE_GROUP.PATIENT_FACING,
+                "hard": True,
+            },
+        ],
+    },
+
+    "visibility": {
+        "mustBeHiddenFrom": [
+            {
+                "target": SPACE_GROUP.PUBLIC,
+                "hard": True,
+            },
+            {
+                "target": SPACE_GROUP.PATIENT_FACING,
+                "hard": True,
+            },
+        ],
+        "mustBeVisibleFrom": [],
+    },
+
+    "circulation": {
+        "role": CIRCULATION_ROLE_ENUM.DESTINATION,
+        "mustConnect": [
+            SPACE_ID.CLINICAL_CORRIDOR,
+        ],
+        "mustNotTerminateInto": [
+            SPACE_ID.PATIENT_LOUNGE,
+            SPACE_ID.CHECK_IN,
+            SPACE_ID.CHECK_OUT,
+        ],
+    },
+
+    "optimization": {
+        "centerBias": {
+            "reference": SPACE_GROUP.STAFF,
+            "weight": 0.3,
+        },
+        "layoutCohesionBias": {
+            "sameCategoryBonus": 0.8,
+        },
+    },
+}
+
+# Shipping Recieving Room
+
+SHIP_REC_RULES = {
+
+    "identity": {
+        "roomType": SPACE_ID.SHIP_REC,
+        "category": ROOM_CATEGORY.PRIVATE,
+        "description": (
+            "Shipping and receiving area for incoming and outgoing supplies, "
+            "equipment, and materials. Staff-only access. May require loading dock access."
+        ),
+    },
+
+    "existence": {
+        "trigger": TRIGGER_ENUM.ALWAYS,
+        "countRules": [
+            {
+                "driver": COUNT_DRIVER_ENUM.FIXED,
+                "min": 1,
+                "max": None,
+                "condition": CONDITION_ENUM.NONE,
+            }
+        ],
+    },
+
+    "geometry": {
+        "shape": SHAPE_ENUM.RECTANGULAR,
+        "dimensionModels": [
+            {
+                "label": "small_ship_rec",
+                "treatmentRoomsMin": None,
+                "treatmentRoomsMax": None,
+                "widthInches": 120,   # 10'-0"
+                "lengthInches": 180,  # 15'-0"
+                "areaSqIn": None,
+                "longAxisVariable": True,
+                "longAxisIncrementPerDoorInches": 12,
+            },
+            {
+                "label": "medium_ship_rec",
+                "treatmentRoomsMin": None,
+                "treatmentRoomsMax": None,
+                "widthInches": 180,   # 15'-0"
+                "lengthInches": 240,  # 20'-0"
+                "areaSqIn": None,
+                "longAxisVariable": True,
+                "longAxisIncrementPerDoorInches": 12,
+            },
+        ],
+        "fallbackStrategy": GEOMETRY_FALLBACK_ENUM.MINIMUM,
+    },
+
+    "orientation": {
+        LAYOUT_ENUM.NARROW: {
+            "allowed": True,
+            "longAxisRelation": AXIS_RELATION_ENUM.PARALLEL,
+            "placementHint": PLACEMENT_ENUM.BACK,
+            "connectsCorridors": True,
+        },
+        LAYOUT_ENUM.THREE_LAYER_CAKE: {
+            "allowed": True,
+            "longAxisRelation": AXIS_RELATION_ENUM.PARALLEL,
+            "placementHint": PLACEMENT_ENUM.END,
+            "connectsCorridors": True,
+        },
+        LAYOUT_ENUM.H_LAYOUT: {
+            "allowed": True,
+            "longAxisRelation": AXIS_RELATION_ENUM.NONE,
+            "placementHint": PLACEMENT_ENUM.END,
+            "connectsCorridors": True,
+        },
+    },
+
+    "access": {
+        "entryCountRules": [
+            {
+                "treatmentRoomsMin": None,
+                "treatmentRoomsMax": None,
+                "minEntries": 1,
+                "maxEntries": 2,
+            }
+        ],
+        "entryConstraints": [
+            {
+                "kind": ENTRY_RULE_ENUM.ENTRY_FROM,
+                "target": SPACE_GROUP.STAFF,
+                "distanceMaxInches": None,
+                "hard": True,
+            },
+            {
+                "kind": ENTRY_RULE_ENUM.ENTRY_NOT_FROM,
+                "target": SPACE_GROUP.PUBLIC,
+                "distanceMaxInches": None,
+                "hard": True,
+            },
+        ],
+        "ada": {
+            "minClearWidthInches": 36,
+            "requiredEntries": 1,
+            # TODO: Confirm if ADA is needed for shipping/receiving access
+        },
+    },
+
+    "adjacency": {
+        "direct": [
+            {
+                "target": SPACE_GROUP.STAFF,
+                "condition": CONDITION_ENUM.NONE,
+                "hard": True,
+            }
+        ],
+        "preferredProximity": [
+            {
+                "target": SPACE_GROUP.SUPPORT,
+                "maxDistanceInches": 120,  # 10'
+                "optimizationWeight": 0.9,
+            },
+            {
+                "target": SPACE_GROUP.CLINICAL,
+                "maxDistanceInches": 360,  # 30'
+                "optimizationWeight": 0.5,
+            },
+        ],
+        "separation": [
+            {
+                "target": SPACE_GROUP.PUBLIC,
+                "hard": True,
+            }
+        ],
+    },
+
+    "visibility": {
+        "mustBeHiddenFrom": [
+            {
+                "target": SPACE_GROUP.PUBLIC,
+                "hard": True,
+            }
+        ],
+        "mustBeVisibleFrom": [
+            {
+                "target": SPACE_GROUP.STAFF,
+                "hard": True,
+            }
+        ],
+    },
+
+    "circulation": {
+        "role": CIRCULATION_ROLE_ENUM.DESTINATION,
+        "mustConnect": [
+            SPACE_ID.CLINICAL_CORRIDOR,
+            # TODO: Consider connecting to MECHANICAL or LOADING areas if layout allows
+        ],
+        "mustNotTerminateInto": [
+            SPACE_ID.PATIENT_LOUNGE,
+            SPACE_ID.CHECK_IN,
+            SPACE_ID.CHECK_OUT,
+        ],
+    },
+
+    "optimization": {
+        "centerBias": {
+            "reference": SPACE_GROUP.STAFF,
+            "weight": 0.7,
+        },
+        "layoutCohesionBias": {
+            "sameCategoryBonus": 0.8,
+        },
+    },
+}
+
+# Conference Room
+
+CONFERENCE_RULES = {
+
+    "identity": {
+        "roomType": SPACE_ID.CONFERENCE,
+        "category": ROOM_CATEGORY.PRIVATE,
+        "description": (
+            "Conference room for staff meetings, presentations, and collaboration. "
+            "Staff-access only, may have AV equipment and seating for 6–12 people."
+        ),
+    },
+
+    "existence": {
+        "trigger": TRIGGER_ENUM.ALWAYS,
+        "countRules": [
+            {
+                "driver": COUNT_DRIVER_ENUM.FIXED,
+                "min": 1,
+                "max": None,
+                "condition": CONDITION_ENUM.NONE,
+            }
+        ],
+    },
+
+    "geometry": {
+        "shape": SHAPE_ENUM.RECTANGULAR,
+        "dimensionModels": [
+            {
+                "label": "small_conference",
+                "treatmentRoomsMin": None,
+                "treatmentRoomsMax": None,
+                "widthInches": 120,   # 10'-0"
+                "lengthInches": 180,  # 15'-0"
+                "areaSqIn": None,
+                "longAxisVariable": True,
+                "longAxisIncrementPerDoorInches": 12,
+            },
+            {
+                "label": "medium_conference",
+                "treatmentRoomsMin": None,
+                "treatmentRoomsMax": None,
+                "widthInches": 180,   # 15'-0"
+                "lengthInches": 240,  # 20'-0"
+                "areaSqIn": None,
+                "longAxisVariable": True,
+                "longAxisIncrementPerDoorInches": 12,
+            },
+        ],
+        "fallbackStrategy": GEOMETRY_FALLBACK_ENUM.MINIMUM,
+    },
+
+    "orientation": {
+        LAYOUT_ENUM.NARROW: {
+            "allowed": True,
+            "longAxisRelation": AXIS_RELATION_ENUM.PARALLEL,
+            "placementHint": PLACEMENT_ENUM.CENTER,
+            "connectsCorridors": True,
+        },
+        LAYOUT_ENUM.THREE_LAYER_CAKE: {
+            "allowed": True,
+            "longAxisRelation": AXIS_RELATION_ENUM.NONE,
+            "placementHint": PLACEMENT_ENUM.CENTER,
+            "connectsCorridors": True,
+        },
+        LAYOUT_ENUM.H_LAYOUT: {
+            "allowed": True,
+            "longAxisRelation": AXIS_RELATION_ENUM.NONE,
+            "placementHint": PLACEMENT_ENUM.CENTER,
+            "connectsCorridors": True,
+        },
+    },
+
+    "access": {
+        "entryCountRules": [
+            {
+                "treatmentRoomsMin": None,
+                "treatmentRoomsMax": None,
+                "minEntries": 1,
+                "maxEntries": 2,
+            }
+        ],
+        "entryConstraints": [
+            {
+                "kind": ENTRY_RULE_ENUM.ENTRY_FROM,
+                "target": SPACE_GROUP.STAFF,
+                "distanceMaxInches": None,
+                "hard": True,
+            }
+        ],
+        "ada": {
+            "minClearWidthInches": 36,
+            "requiredEntries": 1,
+        },
+    },
+
+    "adjacency": {
+        "direct": [
+            {
+                "target": SPACE_GROUP.PRIVATE,
+                "condition": CONDITION_ENUM.NONE,
+                "hard": True,
+            }
+        ],
+        "preferredProximity": [
+            {
+                "target": SPACE_GROUP.STAFF,
+                "maxDistanceInches": 240,  # 20'
+                "optimizationWeight": 0.8,
+            },
+            {
+                "target": SPACE_GROUP.PUBLIC,
+                "maxDistanceInches": 360,  # 30'
+                "optimizationWeight": 0.5,
+            },
+        ],
+        "separation": [
+            {
+                "target": SPACE_GROUP.CLINICAL,
+                "hard": True,
+            }
+        ],
+    },
+
+    "visibility": {
+        "mustBeHiddenFrom": [
+            {
+                "target": SPACE_GROUP.CLINICAL,
+                "hard": True,
+            }
+        ],
+        "mustBeVisibleFrom": [
+            {
+                "target": SPACE_GROUP.STAFF,
+                "hard": True,
+            }
+        ],
+    },
+
+    "circulation": {
+        "role": CIRCULATION_ROLE_ENUM.DESTINATION,
+        "mustConnect": [
+            SPACE_ID.CROSSOVER_HALLWAY,
+            # TODO: Confirm if must connect to STAFF_LOUNGE or ADMIN zones
+        ],
+        "mustNotTerminateInto": [
+            SPACE_ID.PATIENT_LOUNGE,
+            SPACE_ID.CHECK_IN,
+        ],
+    },
+
+    "optimization": {
+        "centerBias": {
+            "reference": SPACE_GROUP.PRIVATE,
+            "weight": 0.7,
+        },
+        "layoutCohesionBias": {
+            "sameCategoryBonus": 0.8,
+        },
+    },
+}
+
+# Associate Office
+
+ASSOCIATE_OFFICE_RULES = {
+
+    "identity": {
+        "roomType": SPACE_ID.ASSOCIATE_OFFICE,
+        "category": ROOM_CATEGORY.PRIVATE,
+        "description": (
+            "Private office for associate staff. Includes workspace, desk, "
+            "and potentially small meeting area for 1-2 people."
+        ),
+    },
+
+    "existence": {
+        "trigger": TRIGGER_ENUM.ALWAYS,
+        "countRules": [
+            {
+                "driver": COUNT_DRIVER_ENUM.FIXED,
+                "min": 1,
+                "max": None,  # TODO: Confirm max number per floor
+                "condition": CONDITION_ENUM.NONE,
+            }
+        ],
+    },
+
+    "geometry": {
+        "shape": SHAPE_ENUM.RECTANGULAR,
+        "dimensionModels": [
+            {
+                "label": "standard_associate_office",
+                "treatmentRoomsMin": None,
+                "treatmentRoomsMax": None,
+                "widthInches": 120,   # 10'-0"
+                "lengthInches": 144,  # 12'-0"
+                "areaSqIn": None,
+                "longAxisVariable": True,
+                "longAxisIncrementPerDoorInches": 12,
+            },
+        ],
+        "fallbackStrategy": GEOMETRY_FALLBACK_ENUM.MINIMUM,
+    },
+
+    "orientation": {
+        LAYOUT_ENUM.NARROW: {
+            "allowed": True,
+            "longAxisRelation": AXIS_RELATION_ENUM.PARALLEL,
+            "placementHint": PLACEMENT_ENUM.CENTER,
+            "connectsCorridors": True,
+        },
+        LAYOUT_ENUM.H_LAYOUT: {
+            "allowed": True,
+            "longAxisRelation": AXIS_RELATION_ENUM.NONE,
+            "placementHint": PLACEMENT_ENUM.CENTER,
+            "connectsCorridors": True,
+        },
+        LAYOUT_ENUM.THREE_LAYER_CAKE: {
+            "allowed": True,
+            "longAxisRelation": AXIS_RELATION_ENUM.NONE,
+            "placementHint": PLACEMENT_ENUM.CENTER,
+            "connectsCorridors": True,
+        },
+    },
+
+    "access": {
+        "entryCountRules": [
+            {
+                "treatmentRoomsMin": None,
+                "treatmentRoomsMax": None,
+                "minEntries": 1,
+                "maxEntries": 1,
+            }
+        ],
+        "entryConstraints": [
+            {
+                "kind": ENTRY_RULE_ENUM.ENTRY_FROM,
+                "target": SPACE_GROUP.PRIVATE,
+                "distanceMaxInches": None,
+                "hard": True,
+            }
+        ],
+        "ada": {
+            "minClearWidthInches": 36,
+            "requiredEntries": 1,
+        },
+    },
+
+    "adjacency": {
+        "direct": [
+            {
+                "target": SPACE_GROUP.PRIVATE,
+                "condition": CONDITION_ENUM.NONE,
+                "hard": True,
+            }
+        ],
+        "preferredProximity": [
+            {
+                "target": SPACE_GROUP.ADMIN,
+                "maxDistanceInches": 240,  # 20'
+                "optimizationWeight": 0.7,
+            },
+            {
+                "target": SPACE_GROUP.STAFF,
+                "maxDistanceInches": 300,  # 25'
+                "optimizationWeight": 0.5,
+            },
+        ],
+        "separation": [
+            {
+                "target": SPACE_GROUP.CLINICAL,
+                "hard": True,
+            }
+        ],
+    },
+
+    "visibility": {
+        "mustBeHiddenFrom": [
+            {
+                "target": SPACE_GROUP.CLINICAL,
+                "hard": True,
+            },
+            {
+                "target": SPACE_GROUP.PUBLIC,
+                "hard": True,
+            },
+        ],
+        "mustBeVisibleFrom": [
+            {
+                "target": SPACE_GROUP.STAFF,
+                "hard": True,
+            }
+        ],
+    },
+
+    "circulation": {
+        "role": CIRCULATION_ROLE_ENUM.DESTINATION,
+        "mustConnect": [
+            SPACE_ID.CROSSOVER_HALLWAY,  # TODO: confirm connection preference
+        ],
+        "mustNotTerminateInto": [
+            SPACE_ID.CHECK_IN,
+            SPACE_ID.PATIENT_LOUNGE,
+        ],
+    },
+
+    "optimization": {
+        "centerBias": {
+            "reference": SPACE_GROUP.PRIVATE,
+            "weight": 0.6,
+        },
+        "layoutCohesionBias": {
+            "sameCategoryBonus": 0.7,
+        },
+    },
+}
+
+# Associates Restroom
+
+ASSOCIATE_RESTROOM_RULES = {
+
+    "identity": {
+        "roomType": SPACE_ID.ASSOCIATE_RESTROOM,
+        "category": ROOM_CATEGORY.PRIVATE,
+        "description": (
+            "Restroom designated for associate/staff use. Typically includes "
+            "toilet(s), sink(s), and may be single or multi-stall depending on staff size."
+        ),
+    },
+
+    "existence": {
+        "trigger": TRIGGER_ENUM.ALWAYS,
+        "countRules": [
+            {
+                "driver": COUNT_DRIVER_ENUM.OCCUPANCY,
+                "min": 1,
+                "max": None,  # TODO: Confirm if more than 1 restroom is needed for larger floors
+                "condition": CONDITION_ENUM.NONE,
+            }
+        ],
+    },
+
+    "geometry": {
+        "shape": SHAPE_ENUM.RECTANGULAR,
+        "dimensionModels": [
+            {
+                "label": "single_staff_restroom",
+                "treatmentRoomsMin": None,
+                "treatmentRoomsMax": None,
+                "widthInches": 72,    # 6'-0"
+                "lengthInches": 84,   # 7'-0"
+                "areaSqIn": None,
+                "longAxisVariable": True,
+                "longAxisIncrementPerDoorInches": 12,
+            },
+        ],
+        "fallbackStrategy": GEOMETRY_FALLBACK_ENUM.MINIMUM,
+    },
+
+    "orientation": {
+        LAYOUT_ENUM.NARROW: {
+            "allowed": True,
+            "longAxisRelation": AXIS_RELATION_ENUM.PARALLEL,
+            "placementHint": PLACEMENT_ENUM.BACK,
+            "connectsCorridors": True,
+        },
+        LAYOUT_ENUM.H_LAYOUT: {
+            "allowed": True,
+            "longAxisRelation": AXIS_RELATION_ENUM.NONE,
+            "placementHint": PLACEMENT_ENUM.BACK,
+            "connectsCorridors": True,
+        },
+        LAYOUT_ENUM.THREE_LAYER_CAKE: {
+            "allowed": True,
+            "longAxisRelation": AXIS_RELATION_ENUM.NONE,
+            "placementHint": PLACEMENT_ENUM.BACK,
+            "connectsCorridors": True,
+        },
+    },
+
+    "access": {
+        "entryCountRules": [
+            {
+                "treatmentRoomsMin": None,
+                "treatmentRoomsMax": None,
+                "minEntries": 1,
+                "maxEntries": 1,
+            }
+        ],
+        "entryConstraints": [
+            {
+                "kind": ENTRY_RULE_ENUM.ENTRY_FROM,
+                "target": SPACE_GROUP.PRIVATE,
+                "distanceMaxInches": 120,  # within 10' of offices
+                "hard": True,
+            }
+        ],
+        "ada": {
+            "minClearWidthInches": 36,
+            "requiredEntries": 1,
+        },
+    },
+
+    "adjacency": {
+        "direct": [
+            {
+                "target": SPACE_GROUP.PRIVATE,
+                "condition": CONDITION_ENUM.NONE,
+                "hard": True,
+            }
+        ],
+        "preferredProximity": [
+            {
+                "target": SPACE_ID.ASSOCIATE_OFFICE,
+                "maxDistanceInches": 120,  # 10' max from offices
+                "optimizationWeight": 0.8,
+            },
+        ],
+        "separation": [
+            {
+                "target": SPACE_GROUP.PUBLIC,
+                "hard": True,
+            }
+        ],
+    },
+
+    "visibility": {
+        "mustBeHiddenFrom": [
+            {
+                "target": SPACE_GROUP.PUBLIC,
+                "hard": True,
+            },
+            {
+                "target": SPACE_GROUP.CLINICAL,
+                "hard": True,
+            },
+        ],
+        "mustBeVisibleFrom": [
+            {
+                "target": SPACE_GROUP.PRIVATE,
+                "hard": False,
+            }
+        ],
+    },
+
+    "circulation": {
+        "role": CIRCULATION_ROLE_ENUM.DESTINATION,
+        "mustConnect": [
+            SPACE_ID.CROSSOVER_HALLWAY,  # TODO: confirm exact corridor connection
+        ],
+        "mustNotTerminateInto": [
+            SPACE_ID.CHECK_IN,
+            SPACE_ID.PATIENT_LOUNGE,
+        ],
+    },
+
+    "optimization": {
+        "centerBias": {
+            "reference": SPACE_GROUP.PRIVATE,
+            "weight": 0.7,
+        },
+        "layoutCohesionBias": {
+            "sameCategoryBonus": 0.6,
+        },
+    },
+}
+
+# Marketing Room
+
+MARKETING_RULES = {
+
+    "identity": {
+        "roomType": SPACE_ID.MARKETING,
+        "category": ROOM_CATEGORY.PRIVATE,
+        "description": (
+            "Office space for marketing staff. Typically includes desks, workstations, "
+            "and collaborative areas for marketing/admin activities."
+        ),
+    },
+
+    "existence": {
+        "trigger": TRIGGER_ENUM.ALWAYS,
+        "countRules": [
+            {
+                "driver": COUNT_DRIVER_ENUM.FIXED,
+                "min": 1,
+                "max": 1,  # TODO: Confirm if more than 1 marketing office is needed per floor
+                "condition": CONDITION_ENUM.NONE,
+            }
+        ],
+    },
+
+    "geometry": {
+        "shape": SHAPE_ENUM.RECTANGULAR,
+        "dimensionModels": [
+            {
+                "label": "standard_marketing_office",
+                "treatmentRoomsMin": None,
+                "treatmentRoomsMax": None,
+                "widthInches": 144,   # 12'-0"
+                "lengthInches": 180,  # 15'-0"
+                "areaSqIn": None,
+                "longAxisVariable": True,
+                "longAxisIncrementPerDoorInches": 12,
+            }
+        ],
+        "fallbackStrategy": GEOMETRY_FALLBACK_ENUM.MINIMUM,
+    },
+
+    "orientation": {
+        LAYOUT_ENUM.NARROW: {
+            "allowed": True,
+            "longAxisRelation": AXIS_RELATION_ENUM.PARALLEL,
+            "placementHint": PLACEMENT_ENUM.CENTER,
+            "connectsCorridors": True,
+        },
+        LAYOUT_ENUM.H_LAYOUT: {
+            "allowed": True,
+            "longAxisRelation": AXIS_RELATION_ENUM.NONE,
+            "placementHint": PLACEMENT_ENUM.CENTER,
+            "connectsCorridors": True,
+        },
+        LAYOUT_ENUM.THREE_LAYER_CAKE: {
+            "allowed": True,
+            "longAxisRelation": AXIS_RELATION_ENUM.NONE,
+            "placementHint": PLACEMENT_ENUM.CENTER,
+            "connectsCorridors": True,
+        },
+    },
+
+    "access": {
+        "entryCountRules": [
+            {
+                "treatmentRoomsMin": None,
+                "treatmentRoomsMax": None,
+                "minEntries": 1,
+                "maxEntries": 1,
+            }
+        ],
+        "entryConstraints": [
+            {
+                "kind": ENTRY_RULE_ENUM.ENTRY_FROM,
+                "target": SPACE_GROUP.PRIVATE,
+                "distanceMaxInches": 120,  # within 10' of admin cluster
+                "hard": True,
+            }
+        ],
+        "ada": {
+            "minClearWidthInches": 36,
+            "requiredEntries": 1,
+        },
+    },
+
+    "adjacency": {
+        "direct": [
+            {
+                "target": SPACE_GROUP.PRIVATE,
+                "condition": CONDITION_ENUM.NONE,
+                "hard": True,
+            }
+        ],
+        "preferredProximity": [
+            {
+                "target": SPACE_ID.TEAM_LEADER,
+                "maxDistanceInches": 120,
+                "optimizationWeight": 0.8,
+            }
+        ],
+        "separation": [
+            {
+                "target": SPACE_GROUP.PUBLIC,
+                "hard": True,
+            }
+        ],
+    },
+
+    "visibility": {
+        "mustBeHiddenFrom": [
+            {
+                "target": SPACE_GROUP.PUBLIC,
+                "hard": True,
+            }
+        ],
+        "mustBeVisibleFrom": [
+            {
+                "target": SPACE_GROUP.PRIVATE,
+                "hard": False,
+            }
+        ],
+    },
+
+    "circulation": {
+        "role": CIRCULATION_ROLE_ENUM.DESTINATION,
+        "mustConnect": [
+            SPACE_ID.CROSSOVER_HALLWAY,  # TODO: Confirm exact corridor or adjacency
+        ],
+        "mustNotTerminateInto": [
+            SPACE_ID.CHECK_IN,
+            SPACE_ID.PATIENT_LOUNGE,
+        ],
+    },
+
+    "optimization": {
+        "centerBias": {
+            "reference": SPACE_GROUP.PRIVATE,
+            "weight": 0.7,
+        },
+        "layoutCohesionBias": {
+            "sameCategoryBonus": 0.6,
+        },
+    },
+}
+
+# Team Leader Room
+
+TEAM_LEADER_RULES = {
+
+    "identity": {
+        "roomType": SPACE_ID.TEAM_LEADER,
+        "category": ROOM_CATEGORY.PRIVATE,
+        "description": (
+            "Private office for the team leader or office manager. "
+            "Typically includes desk, seating for visitors, and administrative workspace."
+        ),
+    },
+
+    "existence": {
+        "trigger": TRIGGER_ENUM.ALWAYS,
+        "countRules": [
+            {
+                "driver": COUNT_DRIVER_ENUM.FIXED,
+                "min": 1,
+                "max": 1,
+                "condition": CONDITION_ENUM.NONE,
+            }
+        ],
+    },
+
+    "geometry": {
+        "shape": SHAPE_ENUM.RECTANGULAR,
+        "dimensionModels": [
+            {
+                "label": "standard_team_leader_office",
+                "treatmentRoomsMin": None,
+                "treatmentRoomsMax": None,
+                "widthInches": 144,   # 12'-0"
+                "lengthInches": 192,  # 16'-0"
+                "areaSqIn": None,
+                "longAxisVariable": True,
+                "longAxisIncrementPerDoorInches": 12,
+            }
+        ],
+        "fallbackStrategy": GEOMETRY_FALLBACK_ENUM.MINIMUM,
+    },
+
+    "orientation": {
+        LAYOUT_ENUM.NARROW: {
+            "allowed": True,
+            "longAxisRelation": AXIS_RELATION_ENUM.PARALLEL,
+            "placementHint": PLACEMENT_ENUM.CENTER,
+            "connectsCorridors": True,
+        },
+        LAYOUT_ENUM.H_LAYOUT: {
+            "allowed": True,
+            "longAxisRelation": AXIS_RELATION_ENUM.NONE,
+            "placementHint": PLACEMENT_ENUM.CENTER,
+            "connectsCorridors": True,
+        },
+        LAYOUT_ENUM.THREE_LAYER_CAKE: {
+            "allowed": True,
+            "longAxisRelation": AXIS_RELATION_ENUM.NONE,
+            "placementHint": PLACEMENT_ENUM.CENTER,
+            "connectsCorridors": True,
+        },
+    },
+
+    "access": {
+        "entryCountRules": [
+            {
+                "treatmentRoomsMin": None,
+                "treatmentRoomsMax": None,
+                "minEntries": 1,
+                "maxEntries": 1,
+            }
+        ],
+        "entryConstraints": [
+            {
+                "kind": ENTRY_RULE_ENUM.ENTRY_FROM,
+                "target": SPACE_GROUP.PRIVATE,
+                "distanceMaxInches": 120,  # within 10' of admin cluster
+                "hard": True,
+            }
+        ],
+        "ada": {
+            "minClearWidthInches": 36,
+            "requiredEntries": 1,
+        },
+    },
+
+    "adjacency": {
+        "direct": [
+            {
+                "target": SPACE_GROUP.PRIVATE,
+                "condition": CONDITION_ENUM.NONE,
+                "hard": True,
+            }
+        ],
+        "preferredProximity": [
+            {
+                "target": SPACE_ID.MARKETING,
+                "maxDistanceInches": 120,
+                "optimizationWeight": 0.8,
+            }
+        ],
+        "separation": [
+            {
+                "target": SPACE_GROUP.PUBLIC,
+                "hard": True,
+            }
+        ],
+    },
+
+    "visibility": {
+        "mustBeHiddenFrom": [
+            {
+                "target": SPACE_GROUP.PUBLIC,
+                "hard": True,
+            }
+        ],
+        "mustBeVisibleFrom": [
+            {
+                "target": SPACE_ID.MARKETING,
+                "hard": False,
+            }
+        ],
+    },
+
+    "circulation": {
+        "role": CIRCULATION_ROLE_ENUM.DESTINATION,
+        "mustConnect": [
+            SPACE_ID.CROSSOVER_HALLWAY,  # TODO: Confirm exact corridor
+        ],
+        "mustNotTerminateInto": [
+            SPACE_ID.CHECK_IN,
+            SPACE_ID.PATIENT_LOUNGE,
+        ],
+    },
+
+    "optimization": {
+        "centerBias": {
+            "reference": SPACE_GROUP.PRIVATE,
+            "weight": 0.8,
+        },
+        "layoutCohesionBias": {
+            "sameCategoryBonus": 0.6,
+        },
+    },
+}
+
+# patient Care Center
+
+PATIENT_CARE_CENTER_RULES = {
+
+    "identity": {
+        "roomType": SPACE_ID.PATIENT_CARE_CENTER,
+        "category": ROOM_CATEGORY.CLINICAL,
+        "description": (
+            "Central clinical area for patient services, coordination, "
+            "and support. May include patient intake, coordination desks, "
+            "and waiting or observation zones."
+        ),
+    },
+
+    "existence": {
+        "trigger": TRIGGER_ENUM.ALWAYS,
+        "countRules": [
+            {
+                "driver": COUNT_DRIVER_ENUM.FIXED,
+                "min": 1,
+                "max": 1,
+                "condition": CONDITION_ENUM.NONE,
+            }
+        ],
+    },
+
+    "geometry": {
+        "shape": SHAPE_ENUM.RECTILINEAR,
+        "dimensionModels": [
+            {
+                "label": "standard_patient_care_center",
+                "treatmentRoomsMin": None,
+                "treatmentRoomsMax": None,
+                "widthInches": 300,   # 25'-0"
+                "lengthInches": 480,  # 40'-0"
+                "areaSqIn": None,
+                "longAxisVariable": True,
+                "longAxisIncrementPerDoorInches": 24,
+            }
+        ],
+        "fallbackStrategy": GEOMETRY_FALLBACK_ENUM.MINIMUM,
+    },
+
+    "orientation": {
+        LAYOUT_ENUM.NARROW: {
+            "allowed": True,
+            "longAxisRelation": AXIS_RELATION_ENUM.PARALLEL,
+            "placementHint": PLACEMENT_ENUM.CENTER,
+            "connectsCorridors": True,
+        },
+        LAYOUT_ENUM.H_LAYOUT: {
+            "allowed": True,
+            "longAxisRelation": AXIS_RELATION_ENUM.NONE,
+            "placementHint": PLACEMENT_ENUM.CENTER,
+            "connectsCorridors": True,
+        },
+        LAYOUT_ENUM.THREE_LAYER_CAKE: {
+            "allowed": True,
+            "longAxisRelation": AXIS_RELATION_ENUM.NONE,
+            "placementHint": PLACEMENT_ENUM.CENTER,
+            "connectsCorridors": True,
+        },
+    },
+
+    "access": {
+        "entryCountRules": [
+            {
+                "treatmentRoomsMin": None,
+                "treatmentRoomsMax": None,
+                "minEntries": 2,
+                "maxEntries": 3,
+            }
+        ],
+        "entryConstraints": [
+            {
+                "kind": ENTRY_RULE_ENUM.ENTRY_FROM,
+                "target": SPACE_GROUP.CORRIDORS,
+                "distanceMaxInches": 60,  # 5' from main corridor
+                "hard": True,
+            }
+        ],
+        "ada": {
+            "minClearWidthInches": 36,
+            "requiredEntries": 2,
+        },
+    },
+
+    "adjacency": {
+        "direct": [
+            {
+                "target": SPACE_GROUP.CLINICAL,
+                "condition": CONDITION_ENUM.NONE,
+                "hard": True,
+            }
+        ],
+        "preferredProximity": [
+            {
+                "target": SPACE_ID.TREATMENT_COORDINATION,
+                "maxDistanceInches": 120,
+                "optimizationWeight": 0.9,
+            },
+            {
+                "target": SPACE_ID.CHECK_IN,
+                "maxDistanceInches": 120,
+                "optimizationWeight": 0.8,
+            }
+        ],
+        "separation": [
+            {
+                "target": SPACE_GROUP.PUBLIC,
+                "hard": False,
+            }
+        ],
+    },
+
+    "visibility": {
+        "mustBeHiddenFrom": [
+            {
+                "target": SPACE_GROUP.PRIVATE,
+                "hard": False,
+            }
+        ],
+        "mustBeVisibleFrom": [
+            {
+                "target": SPACE_ID.CHECK_IN,
+                "hard": True,
+            }
+        ],
+    },
+
+    "circulation": {
+        "role": CIRCULATION_ROLE_ENUM.DESTINATION,
+        "mustConnect": [
+            SPACE_ID.CLINICAL_CORRIDOR,
+            SPACE_ID.CROSSOVER_HALLWAY,
+        ],
+        "mustNotTerminateInto": [
+            SPACE_ID.STAFF_LOUNGE,
+        ],
+    },
+
+    "optimization": {
+        "centerBias": {
+            "reference": SPACE_GROUP.CLINICAL,
+            "weight": 0.9,
+        },
+        "layoutCohesionBias": {
+            "sameCategoryBonus": 0.7,
+        },
+    },
+}
 
 ROOM_RULES = {
     SPACE_ID.STERILIZATION: STERILIZATION_RULES,
@@ -6185,4 +8963,21 @@ ROOM_RULES = {
     SPACE_ID.PRIVATE: PRIVATE_RULES,
     SPACE_ID.SURGICAL: SURGICAL_RULES,
     SPACE_ID.OPEN_BAY: OPEN_BAY_RULES,
+    SPACE_ID.BRUSHING_STATION: BRUSHING_STATION_RULES,
+    SPACE_ID.RECOVERY: RECOVERY_RULES,
+    SPACE_ID.RECORDS: RECORDS_RULES,
+    SPACE_ID.CHANGING: CHANGING_RULES,
+    SPACE_ID.NURSING: NURSING_RULES,
+    SPACE_ID.LAUNDRY: LAUNDRY_RULES,
+    SPACE_ID.SERVER_CLOSET: SERVER_CLOSET_RULES,
+    SPACE_ID.JANITOR_CLOSET: JANITOR_CLOSET_RULES,
+    SPACE_ID.MED_GAS: MED_GAS_RULES,
+    SPACE_ID.STORAGE_CLOSET: STORAGE_CLOSET_RULES,
+    SPACE_ID.SHIP_REC: SHIP_REC_RULES,
+    SPACE_ID.CONFERENCE: CONFERENCE_RULES,
+    SPACE_ID.ASSOCIATE_OFFICE: ASSOCIATE_OFFICE_RULES,
+    SPACE_ID.ASSOCIATE_RESTROOM: ASSOCIATE_RESTROOM_RULES,
+    SPACE_ID.MARKETING: MARKETING_RULES,
+    SPACE_ID.TEAM_LEADER: TEAM_LEADER_RULES,
+    SPACE_ID.PATIENT_CARE_CENTER: PATIENT_CARE_CENTER_RULES,
 }

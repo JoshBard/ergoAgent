@@ -33,7 +33,7 @@ class SPACE_ID(Enum):
     CROSSOVER_HALLWAY = auto()      #not on hand off
     CLINICAL_CORRIDOR = auto()      #not on hand off
     TREATMENT_ROOM = auto()
-    CHECK_IN = auto()       #All the rest of these did not have rules in orig BD AI ruleset
+    CHECK_IN = auto()       # All the rest of these did not have rules in orig BD AI ruleset
     CHECK_OUT = auto()
     MECHANICAL = auto()
     STAFF_ENTRY = auto()    # TODO This might be an input like the layout footprint, not a space type? not on hand off sheet
@@ -196,6 +196,7 @@ class SPACE_GROUP(Enum):
     CORRIDORS = auto()
     FRONT_OF_HOUSE = auto()
     STAFF = auto()
+    ADMIN = auto()
 
 
 #Circulation graph role
