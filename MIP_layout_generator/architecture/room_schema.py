@@ -31,6 +31,7 @@ RoomSchema = {
     
     "geometry": {
         "shape": SHAPE_ENUM,                  # rectangular | rectilinear | irregular
+        "derivationMode"
         "dimensionModels": [
             {
                 "label": str,
@@ -41,9 +42,36 @@ RoomSchema = {
                 "areaSqIn": int | None,
                 "longAxisVariable": bool,
                 "longAxisIncrementPerDoorInches": int | None,
+                "aspectRatioRange": (float, float),
             }
         ],
         "fallbackStrategy": GEOMETRY_FALLBACK_ENUM
+    },
+
+
+    # Flexible capacity model to hold conditions for derived geometries
+    "capacityModel": {
+        "driver": CAPACITY_DRIVER_ENUM,  # seats | workstations | occupants | staff
+        "derivedFrom": COUNT_DRIVER_ENUM | None,  # treatmentRooms, occupancy, etc
+
+        "quantity": {
+            "perUnit": float | None,
+            "min": int | None,
+            "max": int | None,
+            "rounding": ROUNDING_ENUM | None,
+        },
+
+        "area": {
+            "perUnitNSF": float | None,
+            "baseAreaNSF": float | None,
+            "buffers": [
+                {
+                    "label": str,
+                    "minNSF": int | None,
+                    "maxNSF": int | None,
+                }
+            ]
+        }
     },
 
     

@@ -86,6 +86,16 @@ class SHAPE_ENUM(Enum):
     RECTILINEAR = auto()
     IRREGULAR = auto()
 
+class GEOMETRY_DERIVATION_ENUM(Enum):
+    #is geometry derived from some other condition?
+
+    FIXED = auto()
+    CAPACITY_DRIVEN = auto()
+
+class CAPACITY_DRIVER_ENUM(Enum):
+    PEOPLE = auto()
+    SEATS = auto()
+
 class CLOCK_FACE_ENUM(Enum):
     #clock face references for treatment room layout
 
