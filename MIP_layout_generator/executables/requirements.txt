@@ -1,1 +1,20 @@
+#   Python 3.11 requirements file
+#   OR tools needs this version of pythonb to work, so other packages should be capped off for this version
+
+# Optimization
 ortools==9.14.6206
+
+# Data Processing
+numpy>=1.24.0,<2.1.0
+pandas>=2.1.0
+python-dateutil>=2.8.2
+pytz>=2023.3
+six>=1.16.0
+
+# Excel & File Handling
+openpyxl>=3.1.2
+et-xmlfile>=1.1.0
+
+# Helpers
+rapidfuzz>=3.5.0
+tzdata>=2023.3

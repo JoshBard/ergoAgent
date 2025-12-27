@@ -1372,18 +1372,18 @@ DOCTOR_OFFICE_RULES = {
                 "longAxisVariable": True,
                 "longAxisIncrementPerDoorInches": 60,  # TODO: interpret as per-doctor increment
             },
-            {
-                # Optional attached private restroom
-                "label": "attached_private_restroom",
-                "treatmentRoomsMin": None,
-                "treatmentRoomsMax": None,
-                "widthInches": 60,   # 5'-0"
-                "lengthInches": 60,  # 5'-0"
-                "areaSqIn": None,
-                "longAxisVariable": False,
-                "longAxisIncrementPerDoorInches": None,
-                # TODO: represent attachment relationship explicitly
-            },
+            # {
+            #     # Optional attached private restroom
+            #     "label": "attached_private_restroom",
+            #     "treatmentRoomsMin": None,
+            #     "treatmentRoomsMax": None,
+            #     "widthInches": 60,   # 5'-0"
+            #     "lengthInches": 60,  # 5'-0"
+            #     "areaSqIn": None,
+            #     "longAxisVariable": False,
+            #     "longAxisIncrementPerDoorInches": None,
+            #     # TODO: represent attachment relationship explicitly
+            # },
         ],
 
         "fallbackStrategy": GEOMETRY_FALLBACK_ENUM.NEAREST_MATCH,

@@ -24,11 +24,11 @@ def build_layout_model(
     """
     Build a mixed-integer model on a 1-inch discrete grid.
 
-    - building_width_in, building_height_in: total shell size in inches
+    - building_width_in, building_height_in: total shell size in inches. Current iteration assumes rectangular shell
     - rooms: list of room INSTANCE identifiers (e.g., "TREATMENT_ROOM__0")
     - num_treatment_rooms: scalar used by tiered rules (sterilization)
     - max_entrances_per_room: maximum number of door locations we allow per room in v1
-
+    - NOTE: CBC is linear solver only, constraints may have addition, multiplication by a constant, and logical evals
     Returns:
         solver, vars_dict
     """
@@ -38,6 +38,7 @@ def build_layout_model(
 
     # -------------------------------
     # Variables
+    # Every room is represented by vertex and dimension pairs
     # -------------------------------
     x = {}
     y = {}
@@ -45,7 +46,7 @@ def build_layout_model(
     h = {}
 
     for r in rooms:
-        x[r] = solver.IntVar(0, building_width_in, f"x_{r}")
+        x[r] = solver.IntVar(0, building_width_in, f"x_{r}")    # Args: (lower bound, upper bound, name)
         y[r] = solver.IntVar(0, building_height_in, f"y_{r}")
         w[r] = solver.IntVar(1, building_width_in, f"w_{r}")
         h[r] = solver.IntVar(1, building_height_in, f"h_{r}")
@@ -120,7 +121,7 @@ def build_layout_model(
     # Objective
     # -------------------------------
     total_size = solver.Sum([w[r] + h[r] for r in rooms])
-    solver.Minimize(total_size)
+    solver.Maximize(total_size)
 
     vars_dict = {
         "x": x,
@@ -150,6 +151,8 @@ def _prompt_nonnegative_int(prompt: str) -> int:
 
 def main():
     print("=== Floorplan MIP Layout ===")
+
+    #CLI interface for layout footprint
     print("Enter building shell size (inches).")
 
     building_width_in = _prompt_nonnegative_int("Building width in inches: ")
@@ -167,6 +170,7 @@ def main():
         }
     ]
     
+    # for testing we will focus on implementing pipeline in these rooms first
     test_room_types = [
         SPACE_ID.DOCTOR_OFFICE,
         SPACE_ID.STERILIZATION,
@@ -189,7 +193,7 @@ def main():
             print(f"  [warning] No ROOM_RULES entry for '{rt}', it will have only generic constraints.")
 
         for i in range(count):
-            selected_rooms.append(_make_instance_id(rt, i))
+            selected_rooms.append(_make_instance_id(str(rt), i))
 
     if not selected_rooms:
         print("No rooms selected (all counts were 0). Nothing to solve.")
@@ -198,6 +202,7 @@ def main():
     # Single treatment room type
     num_treatment_rooms = counts_by_type.get(SPACE_ID.TREATMENT_ROOM, 0)
 
+    # Invoke builder, this sets solver constraints and defines variables
     solver, vars_dict = build_layout_model(
         building_width_in=building_width_in,
         building_height_in=building_height_in,
