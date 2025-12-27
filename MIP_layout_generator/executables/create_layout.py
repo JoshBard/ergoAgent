@@ -5,7 +5,7 @@
 # - Entrances are discrete integer positions on the rectangle perimeter
 # - Constraint details live in layout_constraints.py
 
-from ortools.linear_solver import pywraplp
+from ortools.linear_solver import pywraplp # pyright: ignore[reportMissingImports]
 
 from ..architecture.constraints import *
 from ..architecture.room_rules import ROOM_RULES
@@ -214,18 +214,27 @@ def main():
     if status == pywraplp.Solver.OPTIMAL:
         print("\nFound layout (all dimensions in inches):")
         for r in selected_rooms:
-            x_var = vars_dict["x"][r]
-            y_var = vars_dict["y"][r]
-            w_var = vars_dict["w"][r]
-            h_var = vars_dict["h"][r]
+            x_val = vars_dict["x"][r].solution_value()
+            y_val = vars_dict["y"][r].solution_value()
+            w_val = vars_dict["w"][r].solution_value()
+            h_val = vars_dict["h"][r].solution_value()
+            
+            # 1. Collect all active doors for this room
+            active_doors = []
+            # You need to know how many max_entrances there were (default was 2)
+            for k in range(2): 
+                door_var = vars_dict["entrance_active"].get((r, k))
+                if door_var and door_var.solution_value() > 0.5: # 0.5 threshold for BoolVars
+                    dx = vars_dict["entrance_x"][(r, k)].solution_value()
+                    dy = vars_dict["entrance_y"][(r, k)].solution_value()
+                    active_doors.append(f"Door_{k}@(x={dx:.0f}, y={dy:.0f})")
+
             base = r.split("__", 1)[0]
+            doors_str = ", ".join(active_doors) if active_doors else "No active doors"
+            
             print(
-                f"{r} [{base}]: (x={x_var.solution_value():.0f}, "
-                f"y={y_var.solution_value():.0f}, "
-                f"w={w_var.solution_value():.0f}, "
-                f"h={h_var.solution_value():.0f})"
+                f"{r} [{base}]: (x={x_val:.0f}, y={y_val:.0f}, w={w_val:.0f}, h={h_val:.0f}) | {doors_str}"
             )
-        print(f"\nnum_treatment_rooms = {num_treatment_rooms}")
     else:
         print("No optimal solution found; status:", status)
 

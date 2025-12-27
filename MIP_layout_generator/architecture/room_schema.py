@@ -22,6 +22,7 @@ RoomSchema = {
                 "min": int | None,
                 "max": int | None,
                 "condition": CONDITION_ENUM,    # or none
+                #TODO: perhaps add argument field so that condition enum doesn't hold semantics
             }
         ]
     },
@@ -40,7 +41,7 @@ RoomSchema = {
                 "widthInches": int | None,
                 "lengthInches": int | None,
                 "areaSqIn": int | None,
-                "longAxisVariable": bool,
+                "longAxisVariable": bool,   # TODO: evaluate and encode long axis when footprint being encoded
                 "longAxisIncrementPerDoorInches": int | None,
                 "aspectRatioRange": (float, float),
             }
@@ -77,10 +78,10 @@ RoomSchema = {
     
     # Layout-Specific Orientation Rules
     
-    "orientation": {
+    "orientation": {#might not be a rule so much as a success metric
         LAYOUT_ENUM: {
             "allowed": bool,
-            "longAxisRelation": AXIS_RELATION_ENUM | None,
+            "longAxisRelation": AXIS_RELATION_ENUM | None,  # TODO: add a relationTo field so we know what it is relative to
             "placementHint": PLACEMENT_ENUM | None,
             "connectsCorridors": bool | None,
         }
@@ -125,7 +126,7 @@ RoomSchema = {
         ],
         "preferredProximity": [
             {
-                "target": SPACE_ID | SPACE_GROUP,
+                "target": SPACE_ID | SPACE_GROUP,#TODO: maybe instead of space group do preferred dist to treatment room or other space_id
                 "maxDistanceInches": int | None,
                 "optimizationWeight": float,
             }

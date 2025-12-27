@@ -26,7 +26,7 @@ from .room_schema import RoomSchema
 STERILIZATION_RULES = {
     "identity": {
         "roomType": SPACE_ID.STERILIZATION,
-        "category": ROOM_CATEGORY.CLINICAL,
+        "category": ROOM_CATEGORY.PRIVATE,
         "description": "Central sterilization and instrument processing space",
     },
 
@@ -36,7 +36,7 @@ STERILIZATION_RULES = {
             {
                 "driver": COUNT_DRIVER_ENUM.FIXED,
                 "min": 1,
-                "max": 1,
+                "max": 2,
                 "condition": CONDITION_ENUM.NONE,
             }
         ],
@@ -83,7 +83,7 @@ STERILIZATION_RULES = {
         LAYOUT_ENUM.NARROW: {
             "allowed": True,
             "longAxisRelation": AXIS_RELATION_ENUM.PERPENDICULAR,
-            "placementHint": PLACEMENT_ENUM.CENTER,
+            "placementHint": PLACEMENT_ENUM.CENTER,#not in rules
             "connectsCorridors": False,
         },
         LAYOUT_ENUM.THREE_LAYER_CAKE: {
@@ -115,7 +115,7 @@ STERILIZATION_RULES = {
                 "maxEntries": 2,
             },
         ],
-        "entryConstraints": [
+        "entryConstraints": [#find a less semantic way to encode this
             {
                 "kind": ENTRY_RULE_ENUM.ENTRY_FROM,
                 "target": SPACE_ID.CLINICAL_CORRIDOR,
@@ -143,7 +143,7 @@ STERILIZATION_RULES = {
 
     "adjacency": {
         "direct": [
-            {
+            {#TODO: might not need to define adjacency corridir groups, just let them fall into place based on whats given in rules
                 "target": SPACE_ID.CLINICAL_CORRIDOR,
                 "condition": CONDITION_ENUM.NONE,
                 "hard": True,
@@ -155,7 +155,7 @@ STERILIZATION_RULES = {
             },
         ],
         "preferredProximity": [
-            {
+            {#TODO: maybe instead of space group do preferred dist to treatment room 
                 "target": SPACE_GROUP.CLINICAL,
                 "maxDistanceInches": None,
                 "optimizationWeight": 1.0,
@@ -174,13 +174,13 @@ STERILIZATION_RULES = {
         "mustBeVisibleFrom": [],
     },
 
-    "circulation": {
+    "circulation": {#NOTE: these aren't explicitly defined in the rule set, but i have it here for optimization purposes down the line, values are assumed.
         "role": CIRCULATION_ROLE_ENUM.DESTINATION,
         "mustConnect": [SPACE_ID.CLINICAL_CORRIDOR],
         "mustNotTerminateInto": [],
     },
 
-    "optimization": {
+    "optimization": {#NOTE: these aren't explicitly defined in the rule set, but i have it here for optimization purposes down the line, values are assumed.
         "centerBias": {
             "reference": SPACE_GROUP.CLINICAL,
             "weight": 1.0,
